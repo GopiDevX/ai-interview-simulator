@@ -73,10 +73,10 @@ export default function Setup() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-10"
         >
-          <h1 className="text-3xl font-bold text-white">Set Up Your Interview</h1>
-          <p className="text-slate-400 mt-2">Configure your personalized mock interview</p>
+          <h1 className="text-4xl font-display font-bold text-white mb-3">Set Up Your Interview</h1>
+          <p className="text-slate-400 font-medium">Configure your personalized mock interview</p>
         </motion.div>
 
         {/* Step Progress */}
@@ -85,21 +85,22 @@ export default function Setup() {
             <div key={s.num} className="flex items-center gap-2">
               <button
                 onClick={() => s.num < step && setStep(s.num)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  step === s.num ? 'bg-blue-500 text-white' :
-                  step > s.num ? 'bg-green-500/20 text-green-400 cursor-pointer' :
-                  'bg-white/5 text-slate-500'
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  step === s.num ? 'bg-electric-blue text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]' :
+                  step > s.num ? 'bg-electric-emerald/20 text-electric-emerald cursor-pointer hover:bg-electric-emerald/30' :
+                  'bg-white/5 text-slate-500 hover:bg-white/10'
                 }`}
               >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                  step > s.num ? 'bg-green-500 text-white' : ''
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  step > s.num ? 'bg-electric-emerald text-navy-dark' : 
+                  step === s.num ? 'bg-white text-electric-blue' : 'bg-white/10'
                 }`}>
                   {step > s.num ? '✓' : s.num}
                 </span>
-                <span className="hidden sm:block">{s.label}</span>
+                <span className="hidden sm:block uppercase tracking-wider">{s.label}</span>
               </button>
               {i < steps.length - 1 && (
-                <div className={`w-6 h-px ${step > s.num ? 'bg-green-500' : 'bg-white/10'}`} />
+                <div className={`w-8 h-1 rounded-full ${step > s.num ? 'bg-electric-emerald' : 'bg-white/10'}`} />
               )}
             </div>
           ))}
@@ -124,32 +125,40 @@ export default function Setup() {
 
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
-                    isDragActive ? 'border-blue-500 bg-blue-500/10' :
-                    resume ? 'border-green-500/50 bg-green-500/5' :
-                    'border-white/10 hover:border-blue-500/50 hover:bg-white/5'
+                  className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+                    isDragActive ? 'border-electric-cyan bg-electric-cyan/10 scale-[1.02]' :
+                    resume ? 'border-electric-emerald/50 bg-electric-emerald/5' :
+                    'border-white/10 hover:border-electric-cyan/50 hover:bg-white/5'
                   }`}
                 >
+                  {isDragActive && <div className="absolute inset-0 bg-gradient-to-r from-electric-cyan/20 to-electric-blue/20 blur-3xl -z-10" />}
+                  
                   <input {...getInputProps()} />
                   {resume ? (
-                    <div className="space-y-3">
-                      <div className="text-4xl">📄</div>
-                      <p className="text-green-400 font-medium">{resume.name}</p>
-                      <p className="text-slate-500 text-sm">{(resume.size / 1024).toFixed(0)} KB • PDF</p>
+                    <div className="space-y-4">
+                      <div className="text-5xl drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">📄</div>
+                      <div>
+                        <p className="text-electric-emerald font-bold text-lg">{resume.name}</p>
+                        <p className="text-slate-400 text-sm mt-1">{(resume.size / 1024).toFixed(0)} KB • PDF</p>
+                      </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setResume(null) }}
-                        className="text-red-400 hover:text-red-300 text-xs transition-colors"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-400/10 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all"
                       >
-                        Remove
+                        Remove File
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <div className="text-4xl">📤</div>
-                      <p className="text-slate-300 font-medium">
-                        {isDragActive ? 'Drop your resume here' : 'Drag & drop your resume'}
-                      </p>
-                      <p className="text-slate-500 text-sm">or click to browse · PDF only · Max 5MB</p>
+                    <div className="space-y-4">
+                      <div className="w-20 h-20 bg-gradient-to-br from-electric-blue/20 to-electric-purple/20 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform shadow-[0_0_30px_rgba(59,130,246,0.15)]">
+                        <span className="text-4xl">📤</span>
+                      </div>
+                      <div>
+                        <p className="text-slate-200 font-bold text-lg mb-1">
+                          {isDragActive ? 'Drop your resume right here' : 'Drag & drop your resume'}
+                        </p>
+                        <p className="text-slate-400 text-sm">or click to browse · PDF only · Max 5MB</p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -200,10 +209,10 @@ export default function Setup() {
                         <button
                           key={r}
                           onClick={() => setRole(r)}
-                          className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                          className={`text-xs font-semibold tracking-wide px-4 py-2 rounded-xl border transition-all ${
                             role === r
-                              ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                              : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'
+                              ? 'bg-electric-blue/20 border-electric-blue/50 text-electric-cyan shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                              : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-300'
                           }`}
                         >
                           {r}
@@ -229,10 +238,10 @@ export default function Setup() {
                         <button
                           key={c}
                           onClick={() => setCompany(c)}
-                          className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                          className={`text-xs font-semibold tracking-wide px-4 py-2 rounded-xl border transition-all ${
                             company === c
-                              ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                              : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'
+                              ? 'bg-electric-blue/20 border-electric-blue/50 text-electric-cyan shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                              : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-300'
                           }`}
                         >
                           {c}
@@ -268,23 +277,27 @@ export default function Setup() {
                     <button
                       key={type.id}
                       onClick={() => setInterviewType(type.id)}
-                      className={`w-full p-4 rounded-xl border text-left transition-all ${
+                      className={`w-full p-5 rounded-2xl border text-left transition-all relative overflow-hidden group ${
                         interviewType === type.id
-                          ? 'bg-blue-500/15 border-blue-500/50'
+                          ? 'bg-electric-blue/10 border-electric-blue/50 shadow-[0_0_30px_rgba(59,130,246,0.15)]'
                           : 'bg-white/5 border-white/10 hover:border-white/20'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{type.icon}</span>
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-colors ${
+                          interviewType === type.id ? 'bg-electric-blue/20 text-white' : 'bg-white/5 text-slate-400'
+                        }`}>
+                          {type.icon}
+                        </div>
                         <div>
-                          <p className={`font-medium ${interviewType === type.id ? 'text-blue-400' : 'text-white'}`}>
+                          <p className={`font-bold text-lg ${interviewType === type.id ? 'text-electric-cyan' : 'text-white'}`}>
                             {type.label}
                           </p>
-                          <p className="text-slate-400 text-sm">{type.desc}</p>
+                          <p className="text-slate-400 text-sm mt-0.5">{type.desc}</p>
                         </div>
                         {interviewType === type.id && (
-                          <div className="ml-auto w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="ml-auto w-6 h-6 rounded-full bg-electric-cyan flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                            <svg className="w-4 h-4 text-navy-dark" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                           </div>
@@ -330,16 +343,21 @@ export default function Setup() {
                   ))}
                 </div>
 
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                  <p className="text-blue-400 text-sm leading-relaxed">
-                    💡 <strong>Tip:</strong> Treat this like a real interview — take your time, think before answering, and elaborate on your responses with specific examples.
+                <div className="bg-electric-cyan/10 border border-electric-cyan/20 rounded-2xl p-5 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+                  <p className="text-electric-cyan text-sm leading-relaxed">
+                    <span className="text-lg mr-2">💡</span>
+                    <strong>Pro Tip:</strong> Treat this like a real interview — take your time, think before answering, and elaborate on your responses with specific examples.
                   </p>
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <Button variant="secondary" onClick={() => setStep(3)} className="flex-1">← Back</Button>
-                  <Button onClick={handleStart} loading={loading} size="lg" className="flex-2 flex-grow-[2]">
-                    🚀 Start Interview
+                <div className="flex gap-4 pt-4">
+                  <Button variant="secondary" onClick={() => setStep(3)} className="flex-1 py-4 font-bold">← Back</Button>
+                  <Button 
+                    onClick={handleStart} 
+                    loading={loading} 
+                    className="flex-[2] py-4 bg-gradient-to-r from-electric-blue to-electric-cyan hover:from-blue-500 hover:to-cyan-400 border-0 glow-blue text-white font-bold text-lg"
+                  >
+                    🚀 Launch Interview
                   </Button>
                 </div>
               </motion.div>

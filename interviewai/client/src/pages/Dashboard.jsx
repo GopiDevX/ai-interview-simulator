@@ -40,22 +40,22 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10"
         >
           <div>
-            <h1 className="text-2xl font-bold text-white">
-              Good to see you, <span className="text-blue-400">{user?.name?.split(' ')[0]}</span> 👋
+            <h1 className="text-3xl font-display font-bold text-white">
+              Welcome back, <span className="text-electric-cyan">{user?.name?.split(' ')[0]}</span> 👋
             </h1>
-            <p className="text-slate-400 mt-1">Track your interview practice progress</p>
+            <p className="text-slate-400 mt-2 font-medium">Track your interview practice progress</p>
           </div>
           <Link to="/setup">
             <motion.button
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(6, 182, 212, 0.4)" }}
               whileTap={{ scale: 0.97 }}
-              className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium text-sm transition-all glow-blue-sm flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-electric-blue to-electric-cyan text-white rounded-xl font-semibold text-sm transition-all glow-blue flex items-center gap-2 shadow-lg shadow-electric-blue/20"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
               </svg>
               New Interview
             </motion.button>
@@ -63,29 +63,30 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
           {[
-            { label: 'Total Sessions', value: stats.total, icon: '🎯' },
-            { label: 'Completed', value: stats.completed, icon: '✅' },
-            { label: 'In Progress', value: stats.active, icon: '⚡' },
+            { label: 'Total Sessions', value: stats.total, icon: '🎯', color: 'from-electric-blue to-electric-purple' },
+            { label: 'Completed', value: stats.completed, icon: '✅', color: 'from-electric-emerald to-green-400' },
+            { label: 'In Progress', value: stats.active, icon: '⚡', color: 'from-electric-cyan to-blue-400' },
           ].map((stat, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.1 }}
-              className="glass-card p-5 text-center"
+              className="glass-card p-6 relative overflow-hidden group hover:border-white/20 transition-colors"
             >
-              <div className="text-2xl mb-1">{stat.icon}</div>
-              <div className="text-2xl font-bold text-white tabular-nums">{stat.value}</div>
-              <div className="text-slate-500 text-xs mt-1">{stat.label}</div>
+              <div className={`absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br ${stat.color} rounded-full opacity-10 group-hover:opacity-20 transition-opacity blur-2xl`} />
+              <div className="text-3xl mb-2">{stat.icon}</div>
+              <div className="text-4xl font-display font-bold text-white tabular-nums">{stat.value}</div>
+              <div className="text-slate-400 font-medium text-sm mt-1">{stat.label}</div>
             </motion.div>
           ))}
         </div>
 
         {/* Sessions */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Recent Interviews</h2>
+          <h2 className="text-xl font-display font-bold text-white mb-6">Recent Interviews</h2>
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
@@ -94,15 +95,21 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="glass-card p-16 text-center"
+              className="glass-card p-16 text-center border-dashed border-2 border-white/10"
             >
-              <div className="text-5xl mb-4">🎤</div>
-              <h3 className="text-white font-semibold text-lg mb-2">No interviews yet</h3>
-              <p className="text-slate-400 mb-6">Start your first AI-powered mock interview to see your progress here.</p>
+              <div className="w-20 h-20 bg-gradient-to-br from-electric-blue/20 to-electric-cyan/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(6,182,212,0.15)]">
+                <span className="text-4xl">🎤</span>
+              </div>
+              <h3 className="text-white font-display font-bold text-xl mb-3">No interviews yet</h3>
+              <p className="text-slate-400 mb-8 max-w-sm mx-auto">Start your first AI-powered mock interview to see your progress here.</p>
               <Link to="/setup">
-                <button className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 bg-white text-navy-dark rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
+                >
                   Start Your First Interview →
-                </button>
+                </motion.button>
               </Link>
             </motion.div>
           ) : (

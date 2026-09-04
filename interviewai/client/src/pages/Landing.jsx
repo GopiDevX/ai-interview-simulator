@@ -23,6 +23,10 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen hero-bg">
+      {/* Decorative animated blobs */}
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-electric-cyan/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob" />
+      <div className="absolute top-40 right-1/4 w-96 h-96 bg-electric-purple/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob" style={{ animationDelay: '2s' }} />
+      <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-electric-blue/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob" style={{ animationDelay: '4s' }} />
       {/* Hero */}
       <section className="pt-32 pb-20 px-4 text-center">
         <motion.div
@@ -34,14 +38,17 @@ export default function Landing() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm font-medium mb-8"
+            transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-electric-cyan/30 bg-electric-cyan/10 text-electric-cyan text-sm font-semibold mb-8 backdrop-blur-sm"
           >
-            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-electric-cyan opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-electric-cyan"></span>
+            </span>
             AI-Powered Mock Interviews
           </motion.div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-tight mb-6">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold text-white leading-tight mb-6 tracking-tight">
             Ace Your Next
             <br />
             <span className="gradient-text">Technical Interview</span>
@@ -52,20 +59,21 @@ export default function Landing() {
             evaluates your answers in real-time, and gives you a detailed performance report.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-8">
             <Link to={user ? '/setup' : '/register'}>
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(6, 182, 212, 0.4)" }}
                 whileTap={{ scale: 0.98 }}
-                className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold text-lg transition-all glow-blue shadow-xl shadow-blue-500/30"
+                className="px-8 py-4 bg-gradient-to-r from-electric-blue to-electric-cyan text-white rounded-xl font-semibold text-lg transition-all glow-blue shadow-xl shadow-electric-blue/30 relative overflow-hidden group"
               >
-                Start Practicing Free →
+                <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full -translate-x-full transition-transform duration-500 skew-x-12" />
+                <span className="relative z-10 flex items-center gap-2">Start Practicing Free <span className="group-hover:translate-x-1 transition-transform">→</span></span>
               </motion.button>
             </Link>
             <Link to={user ? '/dashboard' : '/login'}>
               <motion.button
-                whileHover={{ scale: 1.03 }}
-                className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-semibold text-lg transition-all"
+                whileHover={{ scale: 1.03, backgroundColor: "rgba(255,255,255,0.1)" }}
+                className="px-8 py-4 bg-white/5 border border-white/10 text-white rounded-xl font-semibold text-lg transition-all backdrop-blur-md"
               >
                 {user ? 'Go to Dashboard' : 'Sign In'}
               </motion.button>
@@ -140,8 +148,8 @@ export default function Landing() {
                 transition={{ delay: i * 0.08 }}
                 className="glass-card p-6 card-hover"
               >
-                <div className="text-3xl mb-4">{f.icon}</div>
-                <h3 className="text-white font-semibold mb-2">{f.title}</h3>
+                <div className="text-4xl mb-4 transform transition-transform group-hover:scale-110 group-hover:-rotate-3">{f.icon}</div>
+                <h3 className="text-white font-display font-semibold text-lg mb-2">{f.title}</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
@@ -170,10 +178,10 @@ export default function Landing() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center"
               >
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-bold text-lg flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-electric-blue/20 to-electric-purple/20 border border-electric-blue/30 text-electric-cyan font-bold text-xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(59,130,246,0.15)]">
                   {step.step}
                 </div>
-                <h3 className="text-white font-semibold mb-2">{step.title}</h3>
+                <h3 className="text-white font-display font-semibold text-lg mb-3">{step.title}</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">{step.desc}</p>
                 {i < steps.length - 1 && (
                   <div className="hidden lg:block absolute right-0 top-1/2 text-slate-600 text-xl">→</div>
@@ -196,11 +204,12 @@ export default function Landing() {
           <p className="text-slate-400 mb-8">Start practicing in under 2 minutes. No credit card required.</p>
           <Link to={user ? '/setup' : '/register'}>
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(6, 182, 212, 0.4)" }}
               whileTap={{ scale: 0.98 }}
-              className="px-10 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold text-lg transition-all glow-blue shadow-xl shadow-blue-500/30"
+              className="px-10 py-5 bg-gradient-to-r from-electric-blue to-electric-cyan text-white rounded-2xl font-bold text-lg transition-all glow-blue shadow-2xl shadow-electric-blue/30 relative overflow-hidden group"
             >
-              Get Started Free →
+              <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full -translate-x-full transition-transform duration-500 skew-x-12" />
+              <span className="relative z-10 flex items-center gap-2">Get Started Free <span className="group-hover:translate-x-1 transition-transform">→</span></span>
             </motion.button>
           </Link>
         </motion.div>
