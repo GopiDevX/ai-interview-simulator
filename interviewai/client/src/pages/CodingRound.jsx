@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Editor from '@monaco-editor/react'
+import { Tldraw } from '@tldraw/tldraw'
+import '@tldraw/tldraw/tldraw.css'
 import toast from 'react-hot-toast'
 import { interviewApi } from '../api/interview.js'
 import Button from '../components/ui/Button.jsx'
@@ -91,6 +93,7 @@ export default function CodingRound() {
   const [timeLeft, setTimeLeft] = useState(30 * 60) // 30 minutes
   const [runOutput, setRunOutput] = useState('')
   const [isRunning, setIsRunning] = useState(false)
+  const [activeTab, setActiveTab] = useState('code') // 'code' or 'whiteboard'
 
   // Load question from session or location state
   useEffect(() => {
@@ -225,8 +228,8 @@ export default function CodingRound() {
             <span className="text-blue-400 text-sm">💻</span>
           </div>
           <div>
-            <p className="text-white font-semibold text-sm">Coding Round</p>
-            <p className="text-slate-500 text-xs">Submit your solution before time runs out</p>
+            <p className="text-white font-semibold text-sm">Technical Workspace</p>
+            <p className="text-slate-500 text-xs">Code your solution and design your architecture</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -354,75 +357,109 @@ export default function CodingRound() {
           )}
         </div>
 
-        {/* Right: Code Editor */}
+        {/* Right: Code Editor & Whiteboard */}
         <div className="flex-1 flex flex-col">
-          {/* Language selector */}
-          <div className="flex-shrink-0 border-b border-white/5 px-4 py-2 flex items-center gap-2">
-            {LANGUAGES.map(lang => (
+          {/* Tab and Language selector */}
+          <div className="flex-shrink-0 border-b border-white/5 px-4 py-2 flex items-center justify-between">
+            <div className="flex items-center bg-white/5 p-1 rounded-lg">
               <button
-                key={lang.id}
-                onClick={() => !submitted && handleLanguageChange(lang.id)}
-                disabled={submitted}
-                className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-all ${
-                  language === lang.id
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                } disabled:opacity-50`}
+                onClick={() => setActiveTab('code')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  activeTab === 'code' ? 'bg-[#0F172A] text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
               >
-                {lang.label}
+                💻 Code Editor
               </button>
-            ))}
-          </div>
-
-          {/* Monaco Editor (Top) & Console (Bottom) */}
-          <div className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 relative border-b border-white/5">
-              <Editor
-                height="100%"
-                language={language}
-                value={code}
-                onChange={(val) => !submitted && setCode(val || '')}
-                theme="vs-dark"
-                options={{
-                  fontSize: 14,
-                  fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  lineNumbers: 'on',
-                  readOnly: submitted,
-                  padding: { top: 16, bottom: 16 },
-                  renderLineHighlight: 'all',
-                  cursorBlinking: 'smooth',
-                  smoothScrolling: true,
-                  roundedSelection: true,
-                }}
-              />
+              <button
+                onClick={() => setActiveTab('whiteboard')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  activeTab === 'whiteboard' ? 'bg-[#0F172A] text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🎨 Whiteboard
+              </button>
             </div>
             
-            {/* Console Output Pane */}
-            <div className="h-48 bg-[#0B1120] p-4 overflow-y-auto flex-shrink-0 font-mono text-sm">
-              <div className="text-slate-500 mb-2 font-semibold text-xs uppercase tracking-wider flex items-center justify-between">
-                <span>Console Output</span>
-                {isRunning && <span className="text-blue-400 animate-pulse">Executing...</span>}
+            {/* Language selector (only visible in Code mode) */}
+            {activeTab === 'code' && (
+              <div className="flex items-center gap-2">
+                {LANGUAGES.map(lang => (
+                  <button
+                    key={lang.id}
+                    onClick={() => !submitted && handleLanguageChange(lang.id)}
+                    disabled={submitted}
+                    className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-all ${
+                      language === lang.id
+                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    } disabled:opacity-50`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
               </div>
-              <pre className="text-slate-300 whitespace-pre-wrap font-mono text-sm">{runOutput || "Click 'Run Code' to see output here."}</pre>
-            </div>
+            )}
+          </div>
+
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-h-0">
+            {activeTab === 'code' ? (
+              <>
+                <div className="flex-1 relative border-b border-white/5">
+                  <Editor
+                    height="100%"
+                    language={language}
+                    value={code}
+                    onChange={(val) => !submitted && setCode(val || '')}
+                    theme="vs-dark"
+                    options={{
+                      fontSize: 14,
+                      fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                      minimap: { enabled: false },
+                      scrollBeyondLastLine: false,
+                      lineNumbers: 'on',
+                      readOnly: submitted,
+                      padding: { top: 16, bottom: 16 },
+                      renderLineHighlight: 'all',
+                      cursorBlinking: 'smooth',
+                      smoothScrolling: true,
+                      roundedSelection: true,
+                    }}
+                  />
+                </div>
+                
+                {/* Console Output Pane */}
+                <div className="h-48 bg-[#0B1120] p-4 overflow-y-auto flex-shrink-0 font-mono text-sm">
+                  <div className="text-slate-500 mb-2 font-semibold text-xs uppercase tracking-wider flex items-center justify-between">
+                    <span>Console Output</span>
+                    {isRunning && <span className="text-blue-400 animate-pulse">Executing...</span>}
+                  </div>
+                  <pre className="text-slate-300 whitespace-pre-wrap font-mono text-sm">{runOutput || "Click 'Run Code' to see output here."}</pre>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 w-full h-full relative tldraw-dark-theme" style={{ isolation: 'isolate' }}>
+                <Tldraw persistenceKey={`interview-tldraw-${sessionId}`} />
+              </div>
+            )}
           </div>
 
           {/* Bottom action bar */}
           {!submitted && (
             <div className="flex-shrink-0 border-t border-white/5 px-4 py-3 flex items-center justify-between bg-[#0F172A]">
               <p className="text-slate-500 text-xs">
-                Shift+Enter for new line · Write clean, readable code
+                {activeTab === 'code' ? 'Shift+Enter for new line · Write clean, readable code' : 'Design your architecture and components'}
               </p>
               <div className="flex items-center gap-3">
-                <Button variant="secondary" onClick={handleRunCode} loading={isRunning} size="sm">
-                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Run Code
-                </Button>
+                {activeTab === 'code' && (
+                  <Button variant="secondary" onClick={handleRunCode} loading={isRunning} size="sm">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Run Code
+                  </Button>
+                )}
                 <Button onClick={handleSubmit} loading={submitting} size="sm">
                   Submit Solution →
                 </Button>
