@@ -1,8 +1,11 @@
 const Session = require('../models/mongo/Session')
 const User = require('../models/mongo/User')
-const { generateQuestionPlan, evaluateAnswer, evaluateCode, getInterviewerResponse, generateReport } = require('../services/mockAiService')
+const mockAiService = require('../services/mockAiService')
+const geminiAiService = require('../services/geminiAiService')
 const { sendReportEmail } = require('../utils/emailService')
 const { v4: uuid } = require('uuid')
+
+const getAiService = () => process.env.GEMINI_API_KEY ? geminiAiService : mockAiService
 
 // In-memory store as fallback when MongoDB is unavailable
 const inMemorySessions = new Map()
@@ -44,7 +47,8 @@ const startInterview = async (req, res) => {
     const userId = req.user?.id || 'guest'
     const sessionId = uuid()
 
-    const questionPlan = generateQuestionPlan(role, company)
+    const aiService = getAiService()
+    const questionPlan = aiService.generateQuestionPlan(role, company)
 
     const sessionData = {
       sessionId,
@@ -94,8 +98,9 @@ const sendMessage = async (req, res) => {
       feedback: null
     }
 
+    const aiService = getAiService()
     // Get AI response
-    const aiResponseText = getInterviewerResponse(
+    const aiResponseText = await aiService.getInterviewerResponse(
       stage || session.stage || 'intro',
       questionIndex || 0,
       session.questionPlan,
@@ -140,7 +145,8 @@ const evaluateAnswerHandler = async (req, res) => {
     const { sessionId } = req.params
     const { question, answer } = req.body
 
-    const evaluation = evaluateAnswer(question, answer)
+    const aiService = getAiService()
+    const evaluation = aiService.evaluateAnswer(question, answer)
 
     // Update the last candidate message in transcript with scores
     await Session.findOneAndUpdate(
@@ -161,7 +167,8 @@ const evaluateCodeHandler = async (req, res) => {
     const { sessionId } = req.params
     const { question, code, language } = req.body
 
-    const evaluation = evaluateCode(question, code, language || 'javascript')
+    const aiService = getAiService()
+    const evaluation = aiService.evaluateCode(question, code, language || 'javascript')
 
     await Session.findOneAndUpdate(
       { sessionId },
@@ -241,7 +248,8 @@ const generateReportHandler = async (req, res) => {
     const session = await getSession(sessionId)
     if (!session) return res.status(404).json({ error: 'Session not found' })
 
-    const report = generateReport(session.transcript || [], {
+    const aiService = getAiService()
+    const report = await aiService.generateReport(session.transcript || [], {
       role: session.role,
       company: session.company,
       codeScore: session.codeScore
