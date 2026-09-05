@@ -1,5 +1,7 @@
 const Session = require('../models/mongo/Session')
+const User = require('../models/mongo/User')
 const { generateQuestionPlan, evaluateAnswer, evaluateCode, getInterviewerResponse, generateReport } = require('../services/mockAiService')
+const { sendReportEmail } = require('../utils/emailService')
 const { v4: uuid } = require('uuid')
 
 // In-memory store as fallback when MongoDB is unavailable
@@ -250,6 +252,17 @@ const generateReportHandler = async (req, res) => {
       { sessionId },
       { $set: { status: 'completed', completedAt: new Date() } }
     ).catch(() => null)
+
+    // Trigger email report asynchronously if user is found
+    if (session.userId && session.userId !== 'guest') {
+      User.findById(session.userId)
+        .then(user => {
+          if (user && user.email) {
+            sendReportEmail(user.email, user.name, report, session.role)
+          }
+        })
+        .catch(err => console.error('Failed to fetch user for email report:', err))
+    }
 
     res.json({ ...report, sessionId, role: session.role, company: session.company })
   } catch (err) {
