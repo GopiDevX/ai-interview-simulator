@@ -12,6 +12,8 @@ import Setup from './pages/Setup.jsx'
 import Interview from './pages/Interview.jsx'
 import CodingRound from './pages/CodingRound.jsx'
 import Report from './pages/Report.jsx'
+import Matchmaking from './pages/Matchmaking.jsx'
+import PeerInterview from './pages/PeerInterview.jsx'
 import Loader from './components/ui/Loader.jsx'
 
 // Protected route wrapper
@@ -49,6 +51,8 @@ function AppRoutes() {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/setup" element={<ProtectedRoute><Setup /></ProtectedRoute>} />
+        <Route path="/matchmaking" element={<ProtectedRoute><Matchmaking /></ProtectedRoute>} />
+        <Route path="/peer-interview/:roomId" element={<ProtectedRoute><PeerInterview /></ProtectedRoute>} />
         <Route path="/interview/:sessionId" element={<ProtectedRoute><Interview /></ProtectedRoute>} />
         <Route path="/coding/:sessionId" element={<ProtectedRoute><CodingRound /></ProtectedRoute>} />
         <Route path="/report/:sessionId" element={<ProtectedRoute><Report /></ProtectedRoute>} />

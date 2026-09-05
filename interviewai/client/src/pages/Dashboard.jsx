@@ -122,18 +122,30 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <Link to="/setup">
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(6, 182, 212, 0.4)" }}
-              whileTap={{ scale: 0.97 }}
-              className="px-6 py-3 bg-gradient-to-r from-electric-blue to-electric-cyan text-white rounded-xl font-semibold text-sm transition-all glow-blue flex items-center gap-2 shadow-lg shadow-electric-blue/20"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-              </svg>
-              New Interview
-            </motion.button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link to="/matchmaking">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl font-semibold text-sm transition-all flex items-center gap-2"
+              >
+                <span className="text-lg">🤝</span>
+                Live P2P Practice
+              </motion.button>
+            </Link>
+            <Link to="/setup">
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(6, 182, 212, 0.4)" }}
+                whileTap={{ scale: 0.97 }}
+                className="px-6 py-3 bg-gradient-to-r from-electric-blue to-electric-cyan text-white rounded-xl font-semibold text-sm transition-all glow-blue flex items-center gap-2 shadow-lg shadow-electric-blue/20"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                </svg>
+                New Interview
+              </motion.button>
+            </Link>
+          </div>
         </motion.div>
 
         {/* Stats */}
