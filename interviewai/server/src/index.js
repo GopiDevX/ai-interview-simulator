@@ -37,6 +37,16 @@ app.use('/api/report', reportRoutes)
 
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }))
 
+const path = require('path')
+
+// Serve static frontend in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../client/dist')))
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../client/dist/index.html'))
+  })
+}
+
 setupInterviewSocket(io)
 
 const start = async () => {
