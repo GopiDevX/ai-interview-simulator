@@ -7,6 +7,7 @@ import { useSocket } from '../hooks/useSocket.js'
 import ChatBubble, { TypingIndicator } from '../components/interview/ChatBubble.jsx'
 import Timer from '../components/interview/Timer.jsx'
 import Button from '../components/ui/Button.jsx'
+import Avatar from '../components/interview/Avatar.jsx'
 import { stages, stageLabels, getStageProgress } from '../utils/helpers.js'
 
 const STAGE_QUESTIONS_COUNT = { intro: 1, background: 2, technical: 3, behavioral: 2, coding: 1 }
@@ -341,6 +342,12 @@ export default function Interview() {
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* 3D Avatar Area */}
+      <div className="flex-shrink-0 h-[30vh] sm:h-[40vh] border-b border-white/5 relative overflow-hidden bg-gradient-to-b from-navy-dark to-slate-900 shadow-[inset_0_-30px_50px_rgba(0,0,0,0.5)]">
+        <div className="absolute inset-0 bg-blue-500/5 mix-blend-overlay z-10 pointer-events-none" />
+        <Avatar isSpeaking={isStreaming} />
       </div>
 
       {/* Chat Area */}
