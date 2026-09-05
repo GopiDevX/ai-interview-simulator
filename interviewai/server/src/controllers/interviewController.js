@@ -47,6 +47,13 @@ const startInterview = async (req, res) => {
     const userId = req.user?.id || 'guest'
     const sessionId = uuid()
 
+    if (userId !== 'guest') {
+      const user = await User.findById(userId)
+      if (user && user.tier === 'free' && user.completedInterviews >= 1) {
+        return res.status(403).json({ error: 'Free tier limit reached. Please upgrade to Pro.' })
+      }
+    }
+
     const aiService = getAiService()
     const questionPlan = aiService.generateQuestionPlan(role, company)
 
@@ -261,15 +268,19 @@ const generateReportHandler = async (req, res) => {
       { $set: { status: 'completed', completedAt: new Date() } }
     ).catch(() => null)
 
-    // Trigger email report asynchronously if user is found
+    // Trigger email report asynchronously and increment interview count
     if (session.userId && session.userId !== 'guest') {
       User.findById(session.userId)
-        .then(user => {
-          if (user && user.email) {
-            sendReportEmail(user.email, user.name, report, session.role)
+        .then(async user => {
+          if (user) {
+            user.completedInterviews = (user.completedInterviews || 0) + 1
+            await user.save()
+            if (user.email) {
+              sendReportEmail(user.email, user.name, report, session.role)
+            }
           }
         })
-        .catch(err => console.error('Failed to fetch user for email report:', err))
+        .catch(err => console.error('Failed to update user after report generation:', err))
     }
 
     res.json({ ...report, sessionId, role: session.role, company: session.company })

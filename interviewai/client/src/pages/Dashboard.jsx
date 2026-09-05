@@ -107,10 +107,20 @@ export default function Dashboard() {
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10"
         >
           <div>
-            <h1 className="text-3xl font-display font-bold text-white">
+            <h1 className="text-3xl font-display font-bold text-white flex items-center gap-3">
               Welcome back, <span className="text-electric-cyan">{user?.name?.split(' ')[0]}</span> 👋
+              {user?.tier === 'pro' && (
+                <span className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs px-2 py-1 rounded-md tracking-wider font-black shadow-[0_0_10px_rgba(6,182,212,0.5)]">PRO</span>
+              )}
             </h1>
-            <p className="text-slate-400 mt-2 font-medium">Track your interview practice progress</p>
+            <div className="flex items-center gap-4 mt-2">
+              <p className="text-slate-400 font-medium">Track your interview practice progress</p>
+              {user?.tier !== 'pro' && (
+                <Link to="/pricing" className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors bg-amber-400/10 px-2 py-1 rounded-md border border-amber-400/20">
+                  ⚡ Upgrade to Pro
+                </Link>
+              )}
+            </div>
           </div>
           <Link to="/setup">
             <motion.button

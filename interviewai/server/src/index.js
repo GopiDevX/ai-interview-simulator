@@ -8,6 +8,8 @@ const { connectMongo } = require('./config/db')
 const authRoutes = require('./routes/auth')
 const interviewRoutes = require('./routes/interview')
 const reportRoutes = require('./routes/report')
+const paymentRoutes = require('./routes/payment')
+const { webhook } = require('./controllers/paymentController')
 const { setupInterviewSocket } = require('./socket/interviewSocket')
 const { rateLimiter } = require('./middleware/rateLimiter')
 
@@ -25,6 +27,10 @@ const io = new Server(httpServer, {
 
 app.use(helmet({ crossOriginResourcePolicy: false }))
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }))
+
+// Stripe webhook MUST be before express.json
+app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), webhook)
+
 app.use(express.json({ limit: '10mb' }))
 app.use(rateLimiter)
 
@@ -34,6 +40,7 @@ app.use('/uploads', express.static('uploads'))
 app.use('/api/auth', authRoutes)
 app.use('/api/interviews', interviewRoutes)
 app.use('/api/report', reportRoutes)
+app.use('/api/payment', paymentRoutes)
 
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }))
 

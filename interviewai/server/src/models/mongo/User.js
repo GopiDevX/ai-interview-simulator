@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
   authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
   googleId: { type: String },
   avatar: { type: String },
+  tier: { type: String, enum: ['free', 'pro'], default: 'free' },
+  completedInterviews: { type: Number, default: 0 },
+  stripeCustomerId: { type: String },
+  stripeSubscriptionId: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 })

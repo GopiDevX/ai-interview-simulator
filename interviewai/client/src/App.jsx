@@ -6,6 +6,7 @@ import Navbar from './components/layout/Navbar.jsx'
 import Landing from './pages/Landing.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import Pricing from './pages/Pricing.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Setup from './pages/Setup.jsx'
 import Interview from './pages/Interview.jsx'
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/setup" element={<ProtectedRoute><Setup /></ProtectedRoute>} />
         <Route path="/interview/:sessionId" element={<ProtectedRoute><Interview /></ProtectedRoute>} />

@@ -50,7 +50,12 @@ export default function Setup() {
       toast.success('Interview session created! Good luck 🍀')
       navigate(`/interview/${data.sessionId}`, { state: { questionPlan: data.questionPlan } })
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to start interview')
+      if (err.response?.status === 403) {
+        toast.error('Free tier limit reached! Redirecting to upgrade...')
+        navigate('/pricing')
+      } else {
+        toast.error(err.response?.data?.error || 'Failed to start interview')
+      }
     } finally {
       setLoading(false)
     }
