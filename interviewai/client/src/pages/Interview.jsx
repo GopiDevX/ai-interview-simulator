@@ -29,10 +29,61 @@ export default function Interview() {
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [sessionLoaded, setSessionLoaded] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true)
 
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const streamBufferRef = useRef('')
+  const recognitionRef = useRef(null)
+  const isVoiceEnabledRef = useRef(isVoiceEnabled)
+
+  useEffect(() => {
+    isVoiceEnabledRef.current = isVoiceEnabled
+  }, [isVoiceEnabled])
+
+  // Setup Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition()
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.lang = 'en-US'
+
+      recognition.onresult = (event) => {
+        let finalTranscript = ''
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript
+          }
+        }
+        if (finalTranscript) {
+          setInput(prev => prev + (prev ? ' ' : '') + finalTranscript)
+        }
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+
+      recognitionRef.current = recognition
+    }
+  }, [])
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop()
+      setIsListening(false)
+    } else {
+      try {
+        recognitionRef.current?.start()
+        setIsListening(true)
+      } catch (e) {
+        console.error("Speech recognition error:", e)
+      }
+    }
+  }
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -89,6 +140,14 @@ export default function Interview() {
       setMessages(prev => [...prev, aiMsg])
       setCurrentQuestion(fullText)
       setIsSending(false)
+
+      if (isVoiceEnabledRef.current && window.speechSynthesis) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(fullText)
+        utterance.rate = 1.05
+        window.speechSynthesis.speak(utterance)
+      }
 
       if (shouldMoveToCoding) {
         setTimeout(() => {
@@ -163,6 +222,7 @@ export default function Interview() {
 
   const handleEndInterview = async () => {
     if (!window.confirm('End the interview and go to report?')) return
+    window.speechSynthesis?.cancel() // Stop AI voice if ending
     try {
       await interviewApi.endInterview(sessionId)
       navigate(`/report/${sessionId}`)
@@ -201,6 +261,25 @@ export default function Interview() {
             ))}
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                setIsVoiceEnabled(!isVoiceEnabled)
+                if (isVoiceEnabled) window.speechSynthesis?.cancel()
+              }}
+              className={`p-1.5 rounded-full transition-colors ${isVoiceEnabled ? 'text-blue-400 bg-blue-500/10' : 'text-slate-500 hover:text-slate-300'}`}
+              title={isVoiceEnabled ? "Disable AI Voice" : "Enable AI Voice"}
+            >
+              {isVoiceEnabled ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <line x1="17" y1="7" x2="21" y2="17" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
             <Timer startTime={startTime} />
             <Button variant="danger" size="sm" onClick={handleEndInterview}>
               End Interview
@@ -248,12 +327,22 @@ export default function Interview() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isTyping ? 'Alex is typing...' : 'Type your answer... (Enter to send, Shift+Enter for new line)'}
-              disabled={isTyping || isSending}
+              placeholder={isTyping ? 'Alex is typing...' : 'Type your answer or use the microphone...'}
+              disabled={isTyping || isSending || isListening}
               rows={2}
-              className="w-full bg-white/5 border border-white/10 text-slate-200 placeholder-slate-500 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all disabled:opacity-50"
+              className={`w-full bg-white/5 border text-slate-200 placeholder-slate-500 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none transition-all disabled:opacity-50 ${isListening ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`}
             />
           </div>
+          <button
+            onClick={toggleListening}
+            disabled={isTyping || isSending || !recognitionRef.current}
+            className={`flex-shrink-0 h-[58px] w-[58px] rounded-xl flex items-center justify-center transition-all disabled:opacity-50 ${isListening ? 'bg-red-500/20 text-red-500 animate-pulse border border-red-500/50' : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'}`}
+            title="Toggle Microphone"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </button>
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isTyping || isSending}
