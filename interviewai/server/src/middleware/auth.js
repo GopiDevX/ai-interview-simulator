@@ -13,8 +13,22 @@ const authenticateToken = (req, res, next) => {
     req.user = decoded
     next()
   } catch (err) {
-    return res.status(403).json({ error: 'Invalid or expired token' })
+    res.status(401).json({ error: 'Token is invalid or expired' })
   }
 }
 
-module.exports = { authenticateToken }
+const requireAdmin = async (req, res, next) => {
+  try {
+    const User = require('../models/mongo/User')
+    const user = await User.findById(req.user.id)
+    if (user && user.role === 'recruiter') {
+      next()
+    } else {
+      res.status(403).json({ error: 'Admin access required' })
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to verify admin status' })
+  }
+}
+
+module.exports = { authenticateToken, requireAdmin }

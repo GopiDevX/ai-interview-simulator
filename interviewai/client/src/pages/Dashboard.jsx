@@ -123,6 +123,19 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  await import('../api/auth.js').then(m => m.default.post('/admin/promote'))
+                  toast.success('Promoted to Recruiter! Please log out and back in.')
+                } catch (e) {
+                  toast.error('Failed to promote')
+                }
+              }}
+              className="px-6 py-3 bg-white/5 border border-amber-500/30 text-amber-500 rounded-xl font-semibold text-sm transition-all hover:bg-amber-500/10"
+            >
+              🛠 Promote to Recruiter (Test)
+            </button>
             <Link to="/matchmaking">
               <motion.button
                 whileHover={{ scale: 1.05 }}

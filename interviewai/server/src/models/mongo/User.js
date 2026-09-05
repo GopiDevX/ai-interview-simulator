@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String },
   tier: { type: String, enum: ['free', 'pro'], default: 'free' },
   completedInterviews: { type: Number, default: 0 },
+  role: { type: String, enum: ['candidate', 'recruiter'], default: 'candidate' },
   stripeCustomerId: { type: String },
   stripeSubscriptionId: { type: String },
   createdAt: { type: Date, default: Date.now },

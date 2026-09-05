@@ -25,7 +25,7 @@ const register = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user)
     res.status(201).json({
-      user: { id: user._id, name: user.name, email: user.email, tier: user.tier },
+      user: { id: user._id, name: user.name, email: user.email, tier: user.tier, role: user.role },
       accessToken,
       refreshToken
     })
@@ -52,7 +52,7 @@ const login = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user)
     res.json({
-      user: { id: user._id, name: user.name, email: user.email, tier: user.tier },
+      user: { id: user._id, name: user.name, email: user.email, tier: user.tier, role: user.role },
       accessToken,
       refreshToken
     })
@@ -83,7 +83,7 @@ const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash')
     if (!user) return res.status(404).json({ error: 'User not found' })
-    res.json({ user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar, tier: user.tier } })
+    res.json({ user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar, tier: user.tier, role: user.role } })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })
   }
@@ -122,7 +122,7 @@ const googleAuth = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user)
     res.json({
-      user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar, tier: user.tier },
+      user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar, tier: user.tier, role: user.role },
       accessToken,
       refreshToken
     })

@@ -14,10 +14,11 @@ import CodingRound from './pages/CodingRound.jsx'
 import Report from './pages/Report.jsx'
 import Matchmaking from './pages/Matchmaking.jsx'
 import PeerInterview from './pages/PeerInterview.jsx'
+import RecruiterDashboard from './pages/RecruiterDashboard.jsx'
 import Loader from './components/ui/Loader.jsx'
 
 // Protected route wrapper
-function ProtectedRoute({ children }) {
+const ProtectedRoute = ({ children, requireRecruiter }) => {
   const { user, loading } = useAuth()
   if (loading) {
     return (
@@ -26,7 +27,18 @@ function ProtectedRoute({ children }) {
       </div>
     )
   }
-  return user ? children : <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/login" />
+  
+  if (requireRecruiter && user.role !== 'recruiter') {
+    return <Navigate to="/dashboard" />
+  }
+  
+  // If user is a recruiter, but tries to access regular dashboard, redirect them
+  if (!requireRecruiter && user.role === 'recruiter') {
+    return <Navigate to="/recruiter" />
+  }
+
+  return children
 }
 
 // Hide navbar on interview/coding pages
@@ -50,6 +62,7 @@ function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/recruiter" element={<ProtectedRoute requireRecruiter><RecruiterDashboard /></ProtectedRoute>} />
         <Route path="/setup" element={<ProtectedRoute><Setup /></ProtectedRoute>} />
         <Route path="/matchmaking" element={<ProtectedRoute><Matchmaking /></ProtectedRoute>} />
         <Route path="/peer-interview/:roomId" element={<ProtectedRoute><PeerInterview /></ProtectedRoute>} />
