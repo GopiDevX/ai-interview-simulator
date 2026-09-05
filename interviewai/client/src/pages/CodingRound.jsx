@@ -23,17 +23,35 @@ const STARTERS = {
 function solution(nums, target) {
   // Write your solution here
   
-}`,
+}
+
+// Test case
+console.log("Output:", solution([2,7,11,15], 9));`,
   python: `def solution(nums, target):
     # Write your solution here
-    pass`,
+    pass
+
+# Test case
+print("Output:", solution([2,7,11,15], 9))`,
   java: `class Solution {
     public int[] solution(int[] nums, int target) {
         // Write your solution here
         return new int[]{};
     }
+    
+    // Test case runner
+    public static void main(String[] args) {
+        Solution sol = new Solution();
+        int[] res = sol.solution(new int[]{2,7,11,15}, 9);
+        System.out.print("Output: [");
+        for(int i=0; i<res.length; i++) {
+            System.out.print(res[i] + (i == res.length-1 ? "" : ", "));
+        }
+        System.out.println("]");
+    }
 }`,
-  cpp: `#include <vector>
+  cpp: `#include <iostream>
+#include <vector>
 using namespace std;
 
 class Solution {
@@ -42,7 +60,21 @@ public:
         // Write your solution here
         return {};
     }
-};`
+};
+
+// Test case runner
+int main() {
+    Solution sol;
+    vector<int> nums = {2, 7, 11, 15};
+    vector<int> res = sol.solution(nums, 9);
+    
+    cout << "Output: [";
+    for(size_t i=0; i<res.size(); i++) {
+        cout << res[i] << (i == res.size()-1 ? "" : ", ");
+    }
+    cout << "]" << endl;
+    return 0;
+}`
 }
 
 export default function CodingRound() {
@@ -57,6 +89,8 @@ export default function CodingRound() {
   const [evaluation, setEvaluation] = useState(null)
   const [question, setQuestion] = useState(null)
   const [timeLeft, setTimeLeft] = useState(30 * 60) // 30 minutes
+  const [runOutput, setRunOutput] = useState('')
+  const [isRunning, setIsRunning] = useState(false)
 
   // Load question from session or location state
   useEffect(() => {
@@ -104,6 +138,46 @@ export default function CodingRound() {
   const handleLanguageChange = (lang) => {
     setLanguage(lang)
     setCode(STARTERS[lang] || STARTERS.javascript)
+    setRunOutput('')
+  }
+
+  const handleRunCode = async () => {
+    if (isRunning || submitted) return
+    setIsRunning(true)
+    setRunOutput('Running...')
+    
+    const PISTON_LANG = {
+      javascript: { language: 'javascript', version: '18.15.0' },
+      python: { language: 'python', version: '3.10.0' },
+      java: { language: 'java', version: '15.0.2' },
+      cpp: { language: 'c++', version: '10.2.0' }
+    }
+    
+    try {
+      const payload = {
+        language: PISTON_LANG[language].language,
+        version: PISTON_LANG[language].version,
+        files: [{ content: code }]
+      }
+      
+      const res = await fetch('https://emkc.org/api/v2/piston/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      
+      const data = await res.json()
+      if (data.run) {
+        setRunOutput(data.run.output || 'Done (no output).')
+      } else {
+        setRunOutput('Execution failed:\n' + JSON.stringify(data))
+      }
+    } catch (err) {
+      setRunOutput('Failed to connect to execution engine.')
+      toast.error('Execution failed')
+    } finally {
+      setIsRunning(false)
+    }
   }
 
   const handleSubmit = async () => {
@@ -300,39 +374,59 @@ export default function CodingRound() {
             ))}
           </div>
 
-          {/* Monaco Editor */}
-          <div className="flex-1">
-            <Editor
-              height="100%"
-              language={language}
-              value={code}
-              onChange={(val) => !submitted && setCode(val || '')}
-              theme="vs-dark"
-              options={{
-                fontSize: 14,
-                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                lineNumbers: 'on',
-                readOnly: submitted,
-                padding: { top: 16, bottom: 16 },
-                renderLineHighlight: 'all',
-                cursorBlinking: 'smooth',
-                smoothScrolling: true,
-                roundedSelection: true,
-              }}
-            />
+          {/* Monaco Editor (Top) & Console (Bottom) */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 relative border-b border-white/5">
+              <Editor
+                height="100%"
+                language={language}
+                value={code}
+                onChange={(val) => !submitted && setCode(val || '')}
+                theme="vs-dark"
+                options={{
+                  fontSize: 14,
+                  fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  lineNumbers: 'on',
+                  readOnly: submitted,
+                  padding: { top: 16, bottom: 16 },
+                  renderLineHighlight: 'all',
+                  cursorBlinking: 'smooth',
+                  smoothScrolling: true,
+                  roundedSelection: true,
+                }}
+              />
+            </div>
+            
+            {/* Console Output Pane */}
+            <div className="h-48 bg-[#0B1120] p-4 overflow-y-auto flex-shrink-0 font-mono text-sm">
+              <div className="text-slate-500 mb-2 font-semibold text-xs uppercase tracking-wider flex items-center justify-between">
+                <span>Console Output</span>
+                {isRunning && <span className="text-blue-400 animate-pulse">Executing...</span>}
+              </div>
+              <pre className="text-slate-300 whitespace-pre-wrap font-mono text-sm">{runOutput || "Click 'Run Code' to see output here."}</pre>
+            </div>
           </div>
 
           {/* Bottom action bar */}
           {!submitted && (
-            <div className="flex-shrink-0 border-t border-white/5 px-4 py-3 flex items-center justify-between">
+            <div className="flex-shrink-0 border-t border-white/5 px-4 py-3 flex items-center justify-between bg-[#0F172A]">
               <p className="text-slate-500 text-xs">
                 Shift+Enter for new line · Write clean, readable code
               </p>
-              <Button onClick={handleSubmit} loading={submitting} size="sm">
-                Submit Solution →
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button variant="secondary" onClick={handleRunCode} loading={isRunning} size="sm">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Run Code
+                </Button>
+                <Button onClick={handleSubmit} loading={submitting} size="sm">
+                  Submit Solution →
+                </Button>
+              </div>
             </div>
           )}
         </div>
