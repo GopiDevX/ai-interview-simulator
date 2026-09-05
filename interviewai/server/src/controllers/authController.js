@@ -13,12 +13,6 @@ const generateTokens = (user) => {
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required' })
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' })
-    }
 
     const existingUser = await User.findOne({ email: email.toLowerCase() })
     if (existingUser) {
@@ -44,9 +38,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' })
-    }
 
     const user = await User.findOne({ email: email.toLowerCase() })
     if (!user) {
@@ -74,7 +65,6 @@ const login = async (req, res) => {
 const refresh = async (req, res) => {
   try {
     const { refreshToken } = req.body
-    if (!refreshToken) return res.status(401).json({ error: 'Refresh token required' })
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'interviewai_refresh')
     const user = await User.findById(decoded.id)

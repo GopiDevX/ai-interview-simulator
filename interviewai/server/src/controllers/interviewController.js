@@ -35,16 +35,12 @@ const updateSession = async (sessionId, update) => {
   }
 }
 
-// POST /api/interview/start
+// POST /api/interviews
 const startInterview = async (req, res) => {
   try {
     const { role, company, interviewType, resumeText } = req.body
     const userId = req.user?.id || 'guest'
     const sessionId = uuid()
-
-    if (!role || !company) {
-      return res.status(400).json({ error: 'Role and company are required' })
-    }
 
     const questionPlan = generateQuestionPlan(role, company)
 
@@ -76,10 +72,11 @@ const startInterview = async (req, res) => {
   }
 }
 
-// POST /api/interview/message — returns AI response (simulated streaming via chunks)
+// POST /api/interviews/:sessionId/messages
 const sendMessage = async (req, res) => {
   try {
-    const { sessionId, content, stage, questionIndex } = req.body
+    const { sessionId } = req.params
+    const { content, stage, questionIndex } = req.body
     const session = await getSession(sessionId)
 
     if (!session) {
@@ -135,13 +132,11 @@ const sendMessage = async (req, res) => {
   }
 }
 
-// POST /api/interview/evaluate-answer
+// POST /api/interviews/:sessionId/evaluations/answer
 const evaluateAnswerHandler = async (req, res) => {
   try {
-    const { sessionId, question, answer } = req.body
-    if (!question || !answer) {
-      return res.status(400).json({ error: 'Question and answer are required' })
-    }
+    const { sessionId } = req.params
+    const { question, answer } = req.body
 
     const evaluation = evaluateAnswer(question, answer)
 
@@ -158,11 +153,11 @@ const evaluateAnswerHandler = async (req, res) => {
   }
 }
 
-// POST /api/interview/evaluate-code
+// POST /api/interviews/:sessionId/evaluations/code
 const evaluateCodeHandler = async (req, res) => {
   try {
-    const { sessionId, question, code, language } = req.body
-    if (!code) return res.status(400).json({ error: 'Code is required' })
+    const { sessionId } = req.params
+    const { question, code, language } = req.body
 
     const evaluation = evaluateCode(question, code, language || 'javascript')
 
@@ -182,10 +177,10 @@ const evaluateCodeHandler = async (req, res) => {
   }
 }
 
-// POST /api/interview/end
+// POST /api/interviews/:sessionId/end
 const endInterview = async (req, res) => {
   try {
-    const { sessionId } = req.body
+    const { sessionId } = req.params
     await Session.findOneAndUpdate(
       { sessionId },
       { $set: { status: 'completed', completedAt: new Date() } }
@@ -201,10 +196,11 @@ const endInterview = async (req, res) => {
   }
 }
 
-// POST /api/interview/stage
+// PUT /api/interviews/:sessionId/stage
 const updateStage = async (req, res) => {
   try {
-    const { sessionId, stage } = req.body
+    const { sessionId } = req.params
+    const { stage } = req.body
     await Session.findOneAndUpdate({ sessionId }, { $set: { stage } }).catch(() => null)
     res.json({ success: true, stage })
   } catch (err) {
@@ -212,7 +208,7 @@ const updateStage = async (req, res) => {
   }
 }
 
-// GET /api/interview/:sessionId
+// GET /api/interviews/:sessionId
 const getSessionHandler = async (req, res) => {
   try {
     const session = await getSession(req.params.sessionId)
@@ -223,7 +219,7 @@ const getSessionHandler = async (req, res) => {
   }
 }
 
-// GET /api/interview/user/sessions
+// GET /api/interviews
 const getUserSessions = async (req, res) => {
   try {
     const sessions = await Session.find({ userId: req.user.id })
@@ -236,10 +232,10 @@ const getUserSessions = async (req, res) => {
   }
 }
 
-// POST /api/interview/report/generate
+// POST /api/interviews/:sessionId/reports
 const generateReportHandler = async (req, res) => {
   try {
-    const { sessionId } = req.body
+    const { sessionId } = req.params
     const session = await getSession(sessionId)
     if (!session) return res.status(404).json({ error: 'Session not found' })
 

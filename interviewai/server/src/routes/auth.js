@@ -1,12 +1,14 @@
 const express = require('express')
 const { register, login, refresh, getMe } = require('../controllers/authController')
 const { authenticateToken } = require('../middleware/auth')
+const { validate } = require('../middleware/validate')
+const { registerSchema, loginSchema, refreshSchema } = require('../validations/authSchemas')
 
 const router = express.Router()
 
-router.post('/register', register)
-router.post('/login', login)
-router.post('/refresh', refresh)
+router.post('/register', validate(registerSchema), register)
+router.post('/login', validate(loginSchema), login)
+router.post('/refresh', validate(refreshSchema), refresh)
 router.get('/me', authenticateToken, getMe)
 
 module.exports = router

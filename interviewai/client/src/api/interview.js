@@ -1,15 +1,15 @@
 import api from './auth.js'
 
 export const interviewApi = {
-  start: (formData) => api.post('/interview/start', formData, {
+  start: (formData) => api.post('/interviews', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
-  sendMessage: (data) => api.post('/interview/message', data),
-  evaluateAnswer: (data) => api.post('/interview/evaluate-answer', data),
-  evaluateCode: (data) => api.post('/interview/evaluate-code', data),
-  endInterview: (sessionId) => api.post('/interview/end', { sessionId }),
-  updateStage: (sessionId, stage) => api.post('/interview/stage', { sessionId, stage }),
-  getSession: (sessionId) => api.get(`/interview/${sessionId}`),
-  getUserSessions: () => api.get('/interview/user/sessions'),
-  generateReport: (sessionId) => api.post('/interview/report/generate', { sessionId }),
+  sendMessage: (data) => api.post(`/interviews/${data.sessionId}/messages`, data),
+  evaluateAnswer: (data) => api.post(`/interviews/${data.sessionId}/evaluations/answer`, data),
+  evaluateCode: (data) => api.post(`/interviews/${data.sessionId}/evaluations/code`, data),
+  endInterview: (sessionId) => api.post(`/interviews/${sessionId}/end`),
+  updateStage: (sessionId, stage) => api.put(`/interviews/${sessionId}/stage`, { stage }),
+  getSession: (sessionId) => api.get(`/interviews/${sessionId}`),
+  getUserSessions: () => api.get('/interviews'),
+  generateReport: (sessionId) => api.post(`/interviews/${sessionId}/reports`),
 }

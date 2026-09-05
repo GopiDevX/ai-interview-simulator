@@ -32,7 +32,7 @@ app.use(rateLimiter)
 app.use('/uploads', express.static('uploads'))
 
 app.use('/api/auth', authRoutes)
-app.use('/api/interview', interviewRoutes)
+app.use('/api/interviews', interviewRoutes)
 app.use('/api/report', reportRoutes)
 
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }))
