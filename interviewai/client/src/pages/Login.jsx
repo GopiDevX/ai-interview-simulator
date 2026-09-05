@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext.jsx'
 import Button from '../components/ui/Button.jsx'
 
@@ -9,7 +10,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, googleLogin } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -22,6 +23,19 @@ export default function Login() {
       navigate('/dashboard')
     } catch (err) {
       toast.error(err.response?.data?.error || 'Login failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true)
+      await googleLogin(credentialResponse.credential)
+      toast.success('Welcome back! 👋')
+      navigate('/dashboard')
+    } catch (err) {
+      toast.error('Google authentication failed')
     } finally {
       setLoading(false)
     }
@@ -50,6 +64,26 @@ export default function Login() {
 
         {/* Form */}
         <div className="glass-card p-8">
+          <div className="mb-6 flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error('Google login failed')}
+              useOneTap
+              theme="filled_black"
+              shape="rectangular"
+              text="continue_with"
+            />
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-[#0F172A] text-slate-400">Or continue with email</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">Email address</label>

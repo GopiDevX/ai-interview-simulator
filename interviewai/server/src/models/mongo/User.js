@@ -3,7 +3,9 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  passwordHash: { type: String, required: true },
+  passwordHash: { type: String, required: function() { return this.authProvider === 'local' } },
+  authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
+  googleId: { type: String },
   avatar: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
