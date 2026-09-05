@@ -21,11 +21,11 @@ const evaluateCode = (question, code, language) => {
   return mockAiService.evaluateCode(question, code, language)
 }
 
-const getInterviewerResponse = async (stage, questionIndex, questionPlan, candidateMessage) => {
+const getInterviewerResponse = async (stage, questionIndex, questionPlan, candidateMessage, resumeText) => {
   const ai = getGeminiClient()
   if (!ai) return mockAiService.getInterviewerResponse(stage, questionIndex, questionPlan, candidateMessage)
 
-  const systemInstruction = `
+  let systemInstruction = `
     You are a Senior Technical Interviewer at ${questionPlan?.company || 'a top tech company'}. 
     You are currently conducting an interview for a ${questionPlan?.role || 'Software Engineering'} position.
     The interview is currently in the '${stage}' stage.
@@ -33,6 +33,10 @@ const getInterviewerResponse = async (stage, questionIndex, questionPlan, candid
     Do NOT break character. Speak directly to the candidate.
     If the candidate's answer was good, acknowledge it briefly. If it was poor, politely probe deeper or move on.
   `
+
+  if (resumeText) {
+    systemInstruction += `\n\nCANDIDATE'S RESUME:\n"""\n${resumeText}\n"""\nIMPORTANT: Use the candidate's resume provided above to tailor your questions and responses to their actual past experience, projects, and skills where applicable.`
+  }
 
   let prompt = `The candidate just said: "${candidateMessage}".\n\n`
   

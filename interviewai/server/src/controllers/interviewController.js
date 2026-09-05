@@ -4,6 +4,8 @@ const mockAiService = require('../services/mockAiService')
 const geminiAiService = require('../services/geminiAiService')
 const { sendReportEmail } = require('../utils/emailService')
 const { v4: uuid } = require('uuid')
+const fs = require('fs')
+const pdfParse = require('pdf-parse')
 
 const getAiService = () => process.env.GEMINI_API_KEY ? geminiAiService : mockAiService
 
@@ -57,13 +59,25 @@ const startInterview = async (req, res) => {
     const aiService = getAiService()
     const questionPlan = aiService.generateQuestionPlan(role, company)
 
+    let parsedResumeText = resumeText || ''
+    
+    if (req.file) {
+      try {
+        const dataBuffer = fs.readFileSync(req.file.path)
+        const pdfData = await pdfParse(dataBuffer)
+        parsedResumeText = pdfData.text
+      } catch (err) {
+        console.error('Failed to parse PDF resume:', err)
+      }
+    }
+
     const sessionData = {
       sessionId,
       userId,
       role,
       company,
       interviewType: interviewType || 'full',
-      resumeText: resumeText || '',
+      resumeText: parsedResumeText,
       resumeUrl: req.file ? `/uploads/${req.file.filename}` : null,
       questionPlan,
       transcript: [],
@@ -111,7 +125,8 @@ const sendMessage = async (req, res) => {
       stage || session.stage || 'intro',
       questionIndex || 0,
       session.questionPlan,
-      content
+      content,
+      session.resumeText
     )
 
     const aiMsg = {
