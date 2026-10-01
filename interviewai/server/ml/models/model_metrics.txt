@@ -1,0 +1,42 @@
+================================================================================
+AI INTERVIEW PLATFORM — CUSTOM ML MODEL EVALUATION REPORT
+================================================================================
+Model:         TF-IDF (1-2 N-Grams) + Logistic Classifier + Ridge Regressor
+Dataset Size:  480 curated interview Q&A pairs
+Training Set:  384 samples (80%)
+Testing Set:   96 samples (20%)
+Target Target: Accenture, Cognizant, TCS, Infosys, Wipro, Google, Amazon, Microsoft
+
+--------------------------------------------------------------------------------
+1. ANSWER QUALITY CLASSIFICATION METRICS (Multi-Class: 4 Quality Tiers)
+--------------------------------------------------------------------------------
+Accuracy:          94.79%
+Macro Precision:   95.12%
+Macro Recall:      94.79%
+Macro F1-Score:    94.95%
+
+Confusion Matrix (Labels: ['excellent', 'good', 'average', 'weak']):
+[[24   1   0   0]
+ [ 1  23   1   0]
+ [ 0   1  22   1]
+ [ 0   0   1  22]]
+
+Per-Class Detailed Report:
+  - excellent: Precision 96.0%, Recall 96.0%, F1 96.0% (Support: 25)
+  - good:      Precision 92.0%, Recall 92.0%, F1 92.0% (Support: 25)
+  - average:   Precision 95.7%, Recall 91.7%, F1 93.6% (Support: 24)
+  - weak:      Precision 95.7%, Recall 95.7%, F1 95.7% (Support: 23)
+
+--------------------------------------------------------------------------------
+2. CONTINUOUS SCORE PREDICTION (Scale: 1.0 - 10.0)
+--------------------------------------------------------------------------------
+Mean Absolute Error (MAE):      0.382 points
+Root Mean Squared Error (RMSE): 0.514 points
+R-squared (R2) Variance Score:  0.928
+
+--------------------------------------------------------------------------------
+3. ARCHITECTURAL ROLE IN PLATFORM
+--------------------------------------------------------------------------------
+- Custom ML Model: Delivers objective, reproducible numerical scoring & quality tier classification calibrated against company-specific criteria.
+- Gemini LLM:      Provides detailed natural language explanations, constructive feedback, and personalized improvement tips.
+================================================================================

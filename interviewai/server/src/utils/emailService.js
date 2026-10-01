@@ -1,6 +1,11 @@
-const { Resend } = require('resend')
+let Resend
+try {
+  Resend = require('resend').Resend
+} catch {
+  Resend = null
+}
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const resend = (process.env.RESEND_API_KEY && Resend) ? new Resend(process.env.RESEND_API_KEY) : null
 
 const sendReportEmail = async (userEmail, userName, report, role) => {
   if (!resend) {

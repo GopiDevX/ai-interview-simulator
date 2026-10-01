@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Editor from '@monaco-editor/react'
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import Whiteboard from '../components/common/Whiteboard.jsx'
 import toast from 'react-hot-toast'
 import { interviewApi } from '../api/interview.js'
 import Button from '../components/ui/Button.jsx'
@@ -147,37 +146,51 @@ export default function CodingRound() {
   const handleRunCode = async () => {
     if (isRunning || submitted) return
     setIsRunning(true)
-    setRunOutput('Running...')
-    
-    const PISTON_LANG = {
-      javascript: { language: 'javascript', version: '18.15.0' },
-      python: { language: 'python', version: '3.10.0' },
-      java: { language: 'java', version: '15.0.2' },
-      cpp: { language: 'c++', version: '10.2.0' }
-    }
+    setRunOutput('Compiling & running in sandbox...')
     
     try {
-      const payload = {
-        language: PISTON_LANG[language].language,
-        version: PISTON_LANG[language].version,
-        files: [{ content: code }]
-      }
-      
-      const res = await fetch('https://emkc.org/api/v2/piston/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      
-      const data = await res.json()
-      if (data.run) {
-        setRunOutput(data.run.output || 'Done (no output).')
+      const { data } = await interviewApi.executeCode({ language, code })
+      if (data && data.output) {
+        const timeBadge = data.executionTime ? `\n[Time: ${data.executionTime}]` : ''
+        setRunOutput(`${data.output}${timeBadge}`)
+        if (data.status === 'runtime_error') {
+          toast.error('Runtime error encountered')
+        } else {
+          toast.success('Execution finished')
+        }
       } else {
-        setRunOutput('Execution failed:\n' + JSON.stringify(data))
+        setRunOutput('Program executed successfully with no output.')
       }
-    } catch (err) {
-      setRunOutput('Failed to connect to execution engine.')
-      toast.error('Execution failed')
+    } catch (apiErr) {
+      // Direct client fallback to Piston if backend endpoint fails
+      try {
+        const PISTON_LANG = {
+          javascript: { language: 'javascript', version: '18.15.0' },
+          python: { language: 'python', version: '3.10.0' },
+          java: { language: 'java', version: '15.0.2' },
+          cpp: { language: 'c++', version: '10.2.0' }
+        }
+        const payload = {
+          language: PISTON_LANG[language].language,
+          version: PISTON_LANG[language].version,
+          files: [{ content: code }]
+        }
+        const res = await fetch('https://emkc.org/api/v2/piston/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        const data = await res.json()
+        if (data.run) {
+          setRunOutput(data.run.output || 'Done (no output).')
+          toast.success('Execution finished')
+        } else {
+          setRunOutput('Execution failed:\n' + JSON.stringify(data))
+        }
+      } catch (err) {
+        setRunOutput('Failed to execute code in sandbox. Please check syntax.')
+        toast.error('Execution failed')
+      }
     } finally {
       setIsRunning(false)
     }
@@ -438,8 +451,8 @@ export default function CodingRound() {
                 </div>
               </>
             ) : (
-              <div className="flex-1 w-full h-full relative tldraw-dark-theme" style={{ isolation: 'isolate' }}>
-                <Tldraw persistenceKey={`interview-tldraw-${sessionId}`} />
+              <div className="flex-1 w-full h-full relative">
+                <Whiteboard />
               </div>
             )}
           </div>

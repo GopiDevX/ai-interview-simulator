@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # MongoDB Database Service
+  mongo:
+    image: mongo:7.0
+    container_name: interviewai-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: interviewai
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - interviewai-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express Backend + Machine Learning Scoring Service
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: interviewai-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/interviewai
+      - CLIENT_URL=http://localhost
+      - JWT_SECRET=${JWT_SECRET:-interviewai_super_secret_jwt_key_2026}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - server_uploads:/app/uploads
+    networks:
+      - interviewai-network
+
+  # Production Frontend (Nginx SPA + Reverse Proxy)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: interviewai-client
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - interviewai-network
+
+volumes:
+  mongo_data:
+    driver: local
+  server_uploads:
+    driver: local
+
+networks:
+  interviewai-network:
+    driver: bridge

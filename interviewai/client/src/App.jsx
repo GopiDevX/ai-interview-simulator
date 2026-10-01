@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { InterviewProvider } from './context/InterviewContext.jsx'
 import Navbar from './components/layout/Navbar.jsx'
@@ -75,13 +76,9 @@ function AppRoutes() {
   )
 }
 
-import { GoogleOAuthProvider } from '@react-oauth/google'
-
 export default function App() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'placeholder_for_google_client_id'
-
   return (
-    <GoogleOAuthProvider clientId={clientId}>
+    <ThemeProvider>
       <BrowserRouter>
         <AuthProvider>
           <InterviewProvider>
@@ -104,6 +101,6 @@ export default function App() {
           </InterviewProvider>
         </AuthProvider>
       </BrowserRouter>
-    </GoogleOAuthProvider>
+    </ThemeProvider>
   )
 }

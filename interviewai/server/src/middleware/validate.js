@@ -1,4 +1,4 @@
-const { ZodError } = require('zod');
+const { ZodError } = require('../validations/zodHelper');
 
 const validate = (schema) => (req, res, next) => {
   try {

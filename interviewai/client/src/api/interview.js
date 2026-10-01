@@ -12,4 +12,7 @@ export const interviewApi = {
   getSession: (sessionId) => api.get(`/interviews/${sessionId}`),
   getUserSessions: () => api.get('/interviews'),
   generateReport: (sessionId) => api.post(`/interviews/${sessionId}/reports`),
+  getMlMetrics: () => api.get('/interviews/ml-metrics'),
+  getCompanies: () => api.get('/interviews/companies'),
+  executeCode: (data) => api.post('/interviews/execute-code', data),
 }

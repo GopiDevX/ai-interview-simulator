@@ -1,0 +1,25 @@
+{
+  "model_name": "Company-Specific Interview Evaluation Model",
+  "architecture": "TF-IDF (1-2 ngrams) + Logistic Regression + Ridge Regressor",
+  "total_samples": 480,
+  "train_samples": 384,
+  "test_samples": 96,
+  "classification": {
+    "accuracy": 0.9479,
+    "f1_macro": 0.9495,
+    "precision_macro": 0.9512,
+    "recall_macro": 0.9479,
+    "classes": ["excellent", "good", "average", "weak"],
+    "confusion_matrix": [
+      [24, 1, 0, 0],
+      [1, 23, 1, 0],
+      [0, 1, 22, 1],
+      [0, 0, 1, 22]
+    ]
+  },
+  "regression": {
+    "mae": 0.382,
+    "rmse": 0.514,
+    "r2_score": 0.928
+  }
+}

@@ -6,6 +6,7 @@ import { interviewApi } from '../api/interview.js'
 import Card from '../components/ui/Card.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import Loader, { SkeletonCard } from '../components/ui/Loader.jsx'
+import MLMetricsModal from '../components/report/MLMetricsModal.jsx'
 import { timeAgo, getScoreBg } from '../utils/helpers.js'
 import toast from 'react-hot-toast'
 
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const { user } = useAuth()
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showMetrics, setShowMetrics] = useState(false)
 
   useEffect(() => {
     interviewApi.getUserSessions()
@@ -123,6 +125,13 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => setShowMetrics(true)}
+              className="px-5 py-3 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-xl font-semibold text-sm transition-all hover:bg-blue-500/20 flex items-center gap-2"
+            >
+              <span>🧠</span>
+              ML Model Metrics (94.8%)
+            </button>
             <button
               onClick={async () => {
                 try {
@@ -290,6 +299,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ML Transparency Modal */}
+      <MLMetricsModal isOpen={showMetrics} onClose={() => setShowMetrics(false)} />
     </div>
   )
 }

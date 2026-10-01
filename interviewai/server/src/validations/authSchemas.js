@@ -1,4 +1,4 @@
-const { z } = require('zod');
+const { z } = require('./zodHelper');
 
 const registerSchema = z.object({
   body: z.object({

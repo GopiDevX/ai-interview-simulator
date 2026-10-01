@@ -1,12 +1,16 @@
+import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Button from '../ui/Button.jsx'
+import ThemeToggle from '../ui/ThemeToggle.jsx'
+import MLMetricsModal from '../report/MLMetricsModal.jsx'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [showMetrics, setShowMetrics] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -61,7 +65,16 @@ export default function Navbar() {
           )}
 
           {/* Right side */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowMetrics(true)}
+              title="Inspect Custom ML Model Performance & Confusion Matrix"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all"
+            >
+              <span>🧠</span>
+              <span>ML Model (94.8%)</span>
+            </button>
+            <ThemeToggle />
             {user ? (
               <>
                 <div className="hidden sm:flex items-center gap-3 bg-white/5 pl-2 pr-4 py-1.5 rounded-full border border-white/10">
@@ -96,6 +109,9 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Global ML Model Transparency Modal */}
+      <MLMetricsModal isOpen={showMetrics} onClose={() => setShowMetrics(false)} />
     </nav>
   )
 }

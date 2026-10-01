@@ -20,10 +20,34 @@ const {
   updateStage,
   getSessionHandler,
   getUserSessions,
-  generateReportHandler
+  generateReportHandler,
+  getMlMetricsHandler,
+  executeCodeHandler
 } = require('../controllers/interviewController')
 
+const { getAvailableCompanies, getCompanyProfile } = require('../services/companyKnowledgeBase')
+
 const router = express.Router()
+
+// Get trained ML model evaluation metrics (public, great for project demo & reviews)
+router.get('/ml-metrics', getMlMetricsHandler)
+
+// Get available companies with curated datasets (public)
+router.get('/companies', (req, res) => {
+  const companies = getAvailableCompanies()
+  const profiles = companies.map(name => {
+    const profile = getCompanyProfile(name)
+    return {
+      name: profile.name,
+      industry: profile.industry,
+      difficulty: profile.typicalDifficulty,
+      rounds: profile.rounds.length,
+      questionsCount: profile.commonQuestions.length,
+      focusAreas: profile.focusAreas.slice(0, 3)
+    }
+  })
+  res.json({ companies: profiles, total: profiles.length })
+})
 
 // Create a new interview session
 router.post('/', authenticateToken, upload.single('resume'), validate(startInterviewSchema), startInterview)
@@ -42,6 +66,9 @@ router.post('/:sessionId/evaluations/answer', authenticateToken, validate(evalua
 
 // Evaluate code in the session
 router.post('/:sessionId/evaluations/code', authenticateToken, validate(evaluateCodeSchema), evaluateCodeHandler)
+
+// Execute code in sandbox runner
+router.post('/execute-code', authenticateToken, executeCodeHandler)
 
 // End the session
 router.post('/:sessionId/end', authenticateToken, validate(sessionIdParam), endInterview)

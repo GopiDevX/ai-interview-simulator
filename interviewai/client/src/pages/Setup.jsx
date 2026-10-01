@@ -6,8 +6,105 @@ import toast from 'react-hot-toast'
 import { interviewApi } from '../api/interview.js'
 import Button from '../components/ui/Button.jsx'
 
-const ROLES = ['Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Data Engineer', 'DevOps Engineer', 'Mobile Developer', 'Machine Learning Engineer', 'Product Manager']
-const COMPANIES = ['Google', 'Amazon', 'Microsoft', 'Meta', 'Apple', 'Netflix', 'Uber', 'Airbnb', 'Stripe', 'Startup']
+const ROLES = [
+  'Full Stack Developer',
+  'Backend Developer',
+  'Frontend Developer',
+  'Machine Learning Engineer',
+  'Data Engineer',
+  'DevOps Engineer',
+  'Product Manager'
+]
+
+const CURATED_COMPANIES = [
+  { name: 'Accenture', badge: 'Curated Rubric', difficulty: 'Easy-Medium' },
+  { name: 'Cognizant', badge: 'Curated Rubric', difficulty: 'Medium' },
+  { name: 'TCS', badge: 'Curated Rubric', difficulty: 'Easy-Medium' },
+  { name: 'Infosys', badge: 'Curated Rubric', difficulty: 'Easy-Medium' },
+  { name: 'Wipro', badge: 'Curated Rubric', difficulty: 'Easy-Medium' },
+  { name: 'Google', badge: 'High DSA', difficulty: 'Hard' },
+  { name: 'Amazon', badge: 'STAR Leadership', difficulty: 'Hard' },
+  { name: 'Microsoft', badge: 'Systems & Cloud', difficulty: 'Hard' },
+]
+
+const DEMO_PROFILES = [
+  {
+    id: 'fullstack',
+    title: 'Full Stack Engineer',
+    role: 'Full Stack Developer',
+    company: 'Google',
+    icon: '🚀',
+    summary: 'React 18, Node.js, Express, Microservices & PostgreSQL',
+    resumeText: `EXPERIENCE
+Full Stack Software Engineer at CloudScale Inc (2022 - Present)
+- Designed and implemented microservices handling 50k requests/sec using Node.js, Express, and Redis.
+- Built responsive user interfaces in React 18, Tailwind CSS, and WebSockets for real-time collaboration.
+- Reduced database query latency by 42% through PostgreSQL query optimization, B-Tree indexes, and caching.
+
+PROJECTS
+- E-Commerce Microservices Engine: Built distributed checkout with Stripe API, Kafka event streaming, and idempotency guarantees.
+- Real-Time Collaborative Canvas: Implemented WebSockets and CRDTs for multi-user low-latency document sync.
+
+SKILLS
+- Languages: JavaScript, TypeScript, Python, SQL
+- Technologies: React, Node.js, Express, Docker, Kubernetes, AWS, PostgreSQL, MongoDB, Redis, GraphQL
+- Fundamentals: Data Structures, Algorithms, System Design, REST APIs, CI/CD
+
+EDUCATION
+B.Tech in Computer Science, GPA: 8.8/10.0`
+  },
+  {
+    id: 'enterprise',
+    title: 'Enterprise SDE',
+    role: 'Backend Developer',
+    company: 'Accenture',
+    icon: '🏢',
+    summary: 'Java 17, Spring Boot, OOP, SQL Normalization & Agile',
+    resumeText: `EXPERIENCE
+Software Associate at TechSolutions (2023 - Present)
+- Developed enterprise REST APIs using Java 17 and Spring Boot for high-volume banking transactions.
+- Implemented database normalization up to 3NF, creating optimized stored procedures in MySQL and Oracle.
+- Participated in bi-weekly Agile sprints, code reviews, and automated unit testing with JUnit and Mockito.
+
+PROJECTS
+- Hospital Management Portal: Designed modular patient admission portal using Spring Boot and Hibernate ORM.
+- Banking Transaction Ledger: Built ACID-compliant ledger with row-level locking and transaction rollback mechanisms.
+
+SKILLS
+- Core: Java, Object Oriented Programming (OOP), Data Structures, SQL, JDBC, Hibernate
+- Frameworks & Tools: Spring Boot, Maven, Git, Docker, Postman, Jenkins
+- Concepts: Polymorphism, Inheritance, Database Normalization, Agile Scrum
+
+EDUCATION
+B.E. in Information Technology, First Class with Distinction`
+  },
+  {
+    id: 'ml_ai',
+    title: 'AI / ML Engineer',
+    role: 'Machine Learning Engineer',
+    company: 'Amazon',
+    icon: '🧠',
+    summary: 'Python, PyTorch, Scikit-Learn, RAG & NLP Pipelines',
+    resumeText: `EXPERIENCE
+Machine Learning Engineer at DataIntelligence (2022 - Present)
+- Trained classification and regression models in Scikit-Learn with 94%+ accuracy for predictive scoring.
+- Built Retrieval-Augmented Generation (RAG) pipelines using vector embeddings, FAISS, and cosine similarity search.
+- Containerized model inference microservices in Docker and deployed to AWS with < 15ms latency.
+
+PROJECTS
+- Autonomous Resume Parser: Extracted structured candidate entities from raw PDFs using TF-IDF and regex tokenization.
+- Multi-Class Scoring Classifier: Trained logistic and ridge pipelines, evaluating confusion matrices and F1 scores.
+
+SKILLS
+- Languages: Python, C++, SQL
+- ML/AI: Scikit-Learn, PyTorch, NumPy, Pandas, TF-IDF, HuggingFace, RAG, Vector Databases
+- Deployment: Docker, FastAPI, AWS EC2, GitHub Actions
+
+EDUCATION
+M.S. in Computer Science / Data Science`
+  }
+]
+
 const TYPES = [
   { id: 'technical', label: 'Technical Only', desc: 'Focus on tech questions', icon: '💻' },
   { id: 'behavioral', label: 'Technical + Behavioral', desc: 'Balanced mix', icon: '⚖️' },
@@ -18,13 +115,28 @@ export default function Setup() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [resume, setResume] = useState(null)
+  const [resumeText, setResumeText] = useState('')
+  const [selectedDemoId, setSelectedDemoId] = useState(null)
   const [role, setRole] = useState('')
   const [company, setCompany] = useState('')
   const [interviewType, setInterviewType] = useState('full')
   const [loading, setLoading] = useState(false)
 
+  const handleSelectDemo = (profile) => {
+    setSelectedDemoId(profile.id)
+    setResume(null)
+    setResumeText(profile.resumeText)
+    setRole(profile.role)
+    setCompany(profile.company)
+    toast.success(`Loaded "${profile.title}" demo profile!`)
+  }
+
   const onDrop = useCallback((accepted) => {
-    if (accepted[0]) setResume(accepted[0])
+    if (accepted[0]) {
+      setResume(accepted[0])
+      setSelectedDemoId(null)
+      setResumeText('')
+    }
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -44,7 +156,11 @@ export default function Setup() {
       formData.append('role', role)
       formData.append('company', company)
       formData.append('interviewType', interviewType)
-      if (resume) formData.append('resume', resume)
+      if (resume) {
+        formData.append('resume', resume)
+      } else if (resumeText) {
+        formData.append('resumeText', resumeText)
+      }
 
       const { data } = await interviewApi.start(formData)
       toast.success('Interview session created! Good luck 🍀')
@@ -124,13 +240,54 @@ export default function Setup() {
                 className="space-y-6"
               >
                 <div>
-                  <h2 className="text-xl font-semibold text-white mb-1">Upload Your Resume</h2>
-                  <p className="text-slate-400 text-sm">PDF format, up to 5MB. Optional but recommended for personalized questions.</p>
+                  <h2 className="text-xl font-semibold text-white mb-1">Candidate Profile & Resume</h2>
+                  <p className="text-slate-400 text-sm">Upload your own PDF, or select a pre-calibrated demo profile to start immediately.</p>
+                </div>
+
+                {/* 1-Click Demo Profiles */}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">
+                    ⚡ Quick Start: 1-Click Demo Profiles (With Curated Resume & Projects)
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {DEMO_PROFILES.map((p) => {
+                      const isSelected = selectedDemoId === p.id
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => handleSelectDemo(p)}
+                          className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-blue-600/20 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                              : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-lg">{p.icon}</span>
+                            <span className="text-xs font-bold text-white truncate">{p.title}</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 line-clamp-2 leading-tight">
+                            {p.summary}
+                          </p>
+                          <div className="mt-2 flex items-center justify-between text-[10px]">
+                            <span className="text-cyan-400 font-medium">{p.company}</span>
+                            {isSelected && <span className="text-emerald-400 font-bold">✓ Selected</span>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 my-2">
+                  <div className="h-px bg-white/10 flex-1" />
+                  <span className="text-slate-500 text-xs font-medium uppercase">Or upload custom PDF</span>
+                  <div className="h-px bg-white/10 flex-1" />
                 </div>
 
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+                  className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all duration-300 relative overflow-hidden group ${
                     isDragActive ? 'border-electric-cyan bg-electric-cyan/10 scale-[1.02]' :
                     resume ? 'border-electric-emerald/50 bg-electric-emerald/5' :
                     'border-white/10 hover:border-electric-cyan/50 hover:bg-white/5'
@@ -172,12 +329,12 @@ export default function Setup() {
                   <Button variant="ghost" onClick={() => setStep(2)} className="flex-1">
                     Skip (use generic questions)
                   </Button>
-                  <Button onClick={() => setStep(2)} className="flex-1" disabled={!resume}>
+                  <Button onClick={() => setStep(2)} className="flex-1" disabled={!resume && !resumeText}>
                     Continue →
                   </Button>
                 </div>
-                {!resume && (
-                  <p className="text-center text-slate-500 text-xs">You can skip this step and still get a great interview experience</p>
+                {!resume && !resumeText && (
+                  <p className="text-center text-slate-500 text-xs">You can skip this step or choose a demo profile above</p>
                 )}
               </motion.div>
             )}
@@ -193,7 +350,7 @@ export default function Setup() {
               >
                 <div>
                   <h2 className="text-xl font-semibold text-white mb-1">Target Role & Company</h2>
-                  <p className="text-slate-400 text-sm">Questions will be tailored to your specific target.</p>
+                  <p className="text-slate-400 text-sm">Questions and scoring rubrics are tailored to your target company.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -202,7 +359,7 @@ export default function Setup() {
                     <input
                       value={role}
                       onChange={e => setRole(e.target.value)}
-                      placeholder="e.g. Frontend Developer"
+                      placeholder="e.g. Full Stack Developer"
                       className="input-field mb-2"
                       list="roles-list"
                     />
@@ -210,11 +367,11 @@ export default function Setup() {
                       {ROLES.map(r => <option key={r} value={r} />)}
                     </datalist>
                     <div className="flex flex-wrap gap-2">
-                      {ROLES.slice(0, 5).map(r => (
+                      {ROLES.map(r => (
                         <button
                           key={r}
                           onClick={() => setRole(r)}
-                          className={`text-xs font-semibold tracking-wide px-4 py-2 rounded-xl border transition-all ${
+                          className={`text-xs font-semibold tracking-wide px-3.5 py-1.5 rounded-xl border transition-all ${
                             role === r
                               ? 'bg-electric-blue/20 border-electric-blue/50 text-electric-cyan shadow-[0_0_15px_rgba(59,130,246,0.2)]'
                               : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-300'
@@ -227,29 +384,33 @@ export default function Setup() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Target Company *</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-slate-300">Target Company *</label>
+                      <span className="text-[11px] text-cyan-400">✨ Calibrated Company Rubrics</span>
+                    </div>
                     <input
                       value={company}
                       onChange={e => setCompany(e.target.value)}
-                      placeholder="e.g. Google"
-                      className="input-field mb-2"
+                      placeholder="e.g. Accenture, Google, TCS"
+                      className="input-field mb-3"
                       list="companies-list"
                     />
                     <datalist id="companies-list">
-                      {COMPANIES.map(c => <option key={c} value={c} />)}
+                      {CURATED_COMPANIES.map(c => <option key={c.name} value={c.name} />)}
                     </datalist>
-                    <div className="flex flex-wrap gap-2">
-                      {COMPANIES.slice(0, 6).map(c => (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {CURATED_COMPANIES.map(c => (
                         <button
-                          key={c}
-                          onClick={() => setCompany(c)}
-                          className={`text-xs font-semibold tracking-wide px-4 py-2 rounded-xl border transition-all ${
-                            company === c
-                              ? 'bg-electric-blue/20 border-electric-blue/50 text-electric-cyan shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-                              : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-300'
+                          key={c.name}
+                          onClick={() => setCompany(c.name)}
+                          className={`text-left p-2.5 rounded-xl border transition-all flex flex-col justify-between ${
+                            company === c.name
+                              ? 'bg-blue-600/20 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                              : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/10'
                           }`}
                         >
-                          {c}
+                          <span className="font-bold text-xs truncate">{c.name}</span>
+                          <span className="text-[10px] text-cyan-400 mt-1">{c.badge}</span>
                         </button>
                       ))}
                     </div>

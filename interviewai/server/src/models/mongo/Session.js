@@ -13,9 +13,14 @@ const sessionSchema = new mongoose.Schema({
   userId: { type: String, required: true },
   role: { type: String, required: true },
   company: { type: String, required: true },
+  companyContext: { type: String },
   interviewType: { type: String, default: 'full' },
   resumeUrl: { type: String },
   resumeText: { type: String },
+  resumeChunks: [{
+    text: { type: String },
+    section: { type: String }
+  }],
   questionPlan: { type: mongoose.Schema.Types.Mixed },
   transcript: [messageSchema],
   codingQuestion: { type: mongoose.Schema.Types.Mixed },
