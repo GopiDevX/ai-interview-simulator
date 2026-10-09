@@ -9,6 +9,7 @@ import Timer from '../components/interview/Timer.jsx'
 import Button from '../components/ui/Button.jsx'
 import HRAvatar, { HR_PERSONAS } from '../components/interview/HRAvatar.jsx'
 import ProctoringHUD from '../components/interview/ProctoringHUD.jsx'
+import HumanProctorOfficer from '../components/interview/HumanProctorOfficer.jsx'
 import { stages, stageLabels, getStageProgress } from '../utils/helpers.js'
 
 const STAGE_QUESTIONS_COUNT = { intro: 1, background: 2, technical: 3, behavioral: 2, coding: 1 }
@@ -396,8 +397,8 @@ export default function Interview() {
         </div>
       </div>
 
-      {/* Photorealistic HR Video Interviewer Area */}
-      <div className="flex-shrink-0 h-[34vh] sm:h-[42vh] border-b border-white/5 relative overflow-hidden bg-slate-950">
+      {/* Photorealistic HR & Human Proctor Video Conference Area */}
+      <div className="flex-shrink-0 h-[44vh] sm:h-[50vh] border-b border-white/10 relative overflow-hidden bg-[#080D1A] shadow-2xl">
         <HRAvatar
           isSpeaking={isStreaming}
           stage={stage}
@@ -405,6 +406,17 @@ export default function Interview() {
           selectedPersona={selectedPersona}
           onSelectPersona={setSelectedPersona}
         />
+
+        {/* Live Human Invigilator Stream (Docked Top-Left or In-Session) */}
+        {isStrictMode && (
+          <div className="hidden md:block absolute bottom-4 left-6 z-20 w-44 shadow-2xl">
+            <HumanProctorOfficer
+              isStrict={isStrictMode}
+              trustScore={trustScore}
+              incidentsCount={proctoringIncidents.length}
+            />
+          </div>
+        )}
       </div>
 
       {/* Chat Transcript Area */}
