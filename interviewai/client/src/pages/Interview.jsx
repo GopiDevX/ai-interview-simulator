@@ -35,6 +35,7 @@ export default function Interview() {
   const [isListening, setIsListening] = useState(false)
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true)
   const [isCameraOn, setIsCameraOn] = useState(true)
+  const [isAISpeaking, setIsAISpeaking] = useState(false)
 
   // HR & Proctoring State
   const [selectedPersona, setSelectedPersona] = useState(location.state?.persona || 'sarah')
@@ -58,6 +59,17 @@ export default function Interview() {
   useEffect(() => {
     selectedPersonaRef.current = selectedPersona
   }, [selectedPersona])
+
+  // Pre-load natural voices on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const loadVoices = () => {
+        window.speechSynthesis.getVoices()
+      }
+      loadVoices()
+      window.speechSynthesis.onvoiceschanged = loadVoices
+    }
+  }, [])
 
   // Setup Speech Recognition
   useEffect(() => {
@@ -169,15 +181,7 @@ export default function Interview() {
       })
   }, [sessionId])
 
-  // Initial AI greeting
-  useEffect(() => {
-    if (!sessionLoaded || messages.length > 0) return
-    setTimeout(() => {
-      triggerAIMessage('intro', 0)
-    }, 800)
-  }, [sessionLoaded])
-
-  // Realistic Human Voice Speech Synthesis Helper
+  // High-Fidelity Human Voice Speech Synthesis Helper
   const speakText = (text) => {
     if (!isVoiceEnabledRef.current || !window.speechSynthesis) return
 
@@ -189,11 +193,11 @@ export default function Interview() {
     const persona = HR_PERSONAS.find(p => p.id === selectedPersonaRef.current) || HR_PERSONAS[0]
 
     let matchedVoice = null
-    if (persona.voiceName === 'female') {
-      matchedVoice = voices.find(v => (v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Natural')) && v.lang.startsWith('en'))
+    if (persona.gender === 'female') {
+      matchedVoice = voices.find(v => (v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Natural') || v.name.includes('Jenny')) && v.lang.startsWith('en'))
         || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
     } else {
-      matchedVoice = voices.find(v => (v.name.includes('David') || v.name.includes('Guy') || v.name.includes('Natural')) && v.lang.startsWith('en'))
+      matchedVoice = voices.find(v => (v.name.includes('David') || v.name.includes('Guy') || v.name.includes('Natural') || v.name.includes('Mark')) && v.lang.startsWith('en'))
         || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('male'))
     }
 
@@ -201,10 +205,30 @@ export default function Interview() {
       utterance.voice = matchedVoice
     }
 
-    utterance.rate = 1.02
-    utterance.pitch = persona.voiceName === 'female' ? 1.05 : 0.95
+    utterance.rate = 1.01
+    utterance.pitch = persona.gender === 'female' ? 1.04 : 0.96
+
+    utterance.onstart = () => setIsAISpeaking(true)
+    utterance.onend = () => setIsAISpeaking(false)
+    utterance.onerror = () => setIsAISpeaking(false)
+
     window.speechSynthesis.speak(utterance)
   }
+
+  const handleRepeatQuestion = () => {
+    if (currentQuestion) {
+      speakText(currentQuestion)
+      toast.success('Replaying HR question audio', { icon: '🔊' })
+    }
+  }
+
+  // Initial AI greeting
+  useEffect(() => {
+    if (!sessionLoaded || messages.length > 0) return
+    setTimeout(() => {
+      triggerAIMessage('intro', 0)
+    }, 800)
+  }, [sessionLoaded])
 
   // Socket event listeners
   useEffect(() => {
@@ -400,11 +424,14 @@ export default function Interview() {
       {/* Photorealistic HR & Human Proctor Video Conference Area */}
       <div className="flex-shrink-0 h-[44vh] sm:h-[50vh] border-b border-white/10 relative overflow-hidden bg-[#080D1A] shadow-2xl">
         <HRAvatar
-          isSpeaking={isStreaming}
+          isSpeaking={isAISpeaking || isStreaming}
+          isCandidateTyping={input.trim().length > 0 || isListening}
+          isEvaluating={isSending || isTyping}
           stage={stage}
           company={sessionData?.company}
           selectedPersona={selectedPersona}
           onSelectPersona={setSelectedPersona}
+          onRepeatAudio={handleRepeatQuestion}
         />
 
         {/* Live Human Invigilator Stream (Docked Top-Left or In-Session) */}
