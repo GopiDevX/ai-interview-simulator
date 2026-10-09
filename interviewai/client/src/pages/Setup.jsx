@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
 import { interviewApi } from '../api/interview.js'
 import Button from '../components/ui/Button.jsx'
+import { HR_PERSONAS } from '../components/interview/HRAvatar.jsx'
 
 const ROLES = [
   'Full Stack Developer',
@@ -120,6 +121,8 @@ export default function Setup() {
   const [role, setRole] = useState('')
   const [company, setCompany] = useState('')
   const [interviewType, setInterviewType] = useState('full')
+  const [selectedPersona, setSelectedPersona] = useState('sarah')
+  const [isStrictMode, setIsStrictMode] = useState(true)
   const [loading, setLoading] = useState(false)
 
   const handleSelectDemo = (profile) => {
@@ -164,7 +167,13 @@ export default function Setup() {
 
       const { data } = await interviewApi.start(formData)
       toast.success('Interview session created! Good luck 🍀')
-      navigate(`/interview/${data.sessionId}`, { state: { questionPlan: data.questionPlan } })
+      navigate(`/interview/${data.sessionId}`, {
+        state: {
+          questionPlan: data.questionPlan,
+          persona: selectedPersona,
+          isStrictMode: isStrictMode
+        }
+      })
     } catch (err) {
       if (err.response?.status === 403) {
         toast.error('Free tier limit reached! Redirecting to upgrade...')
@@ -473,6 +482,84 @@ export default function Setup() {
                   ))}
                 </div>
 
+                {/* HR Interviewer Persona Selection */}
+                <div className="pt-4 border-t border-white/10 space-y-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <span>👔</span> Select Your Lead IT HR Interviewer
+                    </h3>
+                    <p className="text-slate-400 text-xs mt-0.5">
+                      Choose an AI recruiter persona tailored with distinct interview styles, speech accents, and evaluation priorities.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {HR_PERSONAS.map(persona => (
+                      <button
+                        key={persona.id}
+                        type="button"
+                        onClick={() => setSelectedPersona(persona.id)}
+                        className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col items-center sm:items-start ${
+                          selectedPersona === persona.id
+                            ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                            : 'bg-white/5 border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 w-full mb-2">
+                          <img
+                            src={persona.image}
+                            alt={persona.name}
+                            className="w-12 h-12 rounded-xl object-cover border border-white/20 shadow-md"
+                          />
+                          <div>
+                            <p className="font-bold text-white text-sm">{persona.name}</p>
+                            <p className="text-[10px] text-blue-400 font-medium leading-tight">{persona.title}</p>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">
+                          {persona.bio}
+                        </p>
+                        {selectedPersona === persona.id && (
+                          <div className="mt-2 text-[10px] font-bold text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20 flex items-center gap-1">
+                            <span>✓</span> Selected Recruiter
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Strict Proctoring Toggle */}
+                <div className="pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900/80 border border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
+                        🛡️
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-white text-sm">Strict HR Proctoring & Integrity Mode</p>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase">
+                            Recommended
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-xs mt-0.5">
+                          Enforces tab switch tracking, gaze/face verification, noise detection, and generates an Authenticity Trust Score.
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer ml-4">
+                      <input
+                        type="checkbox"
+                        checked={isStrictMode}
+                        onChange={e => setIsStrictMode(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="flex gap-3 pt-2">
                   <Button variant="secondary" onClick={() => setStep(2)} className="flex-1">← Back</Button>
                   <Button onClick={() => setStep(4)} className="flex-1">Continue →</Button>
@@ -500,10 +587,12 @@ export default function Setup() {
                     { label: 'Role', value: role, icon: '💼' },
                     { label: 'Company', value: company, icon: '🏢' },
                     { label: 'Format', value: TYPES.find(t => t.id === interviewType)?.label, icon: '🎯' },
+                    { label: 'Interviewer', value: HR_PERSONAS.find(p => p.id === selectedPersona)?.name + ' (IT HR Lead)', icon: '👔' },
+                    { label: 'Proctoring', value: isStrictMode ? 'Active (Strict Anti-Cheat & Trust Score)' : 'Standard Practice Mode', icon: '🛡️' }
                   ].map(item => (
                     <div key={item.label} className="flex items-center gap-3">
                       <span className="text-lg">{item.icon}</span>
-                      <span className="text-slate-400 text-sm w-20">{item.label}:</span>
+                      <span className="text-slate-400 text-sm w-24">{item.label}:</span>
                       <span className="text-white text-sm font-medium">{item.value}</span>
                     </div>
                   ))}
@@ -512,7 +601,7 @@ export default function Setup() {
                 <div className="bg-electric-cyan/10 border border-electric-cyan/20 rounded-2xl p-5 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
                   <p className="text-electric-cyan text-sm leading-relaxed">
                     <span className="text-lg mr-2">💡</span>
-                    <strong>Pro Tip:</strong> Treat this like a real interview — take your time, think before answering, and elaborate on your responses with specific examples.
+                    <strong>HR Pro Tip:</strong> Answer in a conversational, structured manner using the <strong>STAR Method</strong> (Situation, Task, Action, Result). State specific metrics and engineering trade-offs.
                   </p>
                 </div>
 
@@ -523,7 +612,7 @@ export default function Setup() {
                     loading={loading} 
                     className="flex-[2] py-4 bg-gradient-to-r from-electric-blue to-electric-cyan hover:from-blue-500 hover:to-cyan-400 border-0 glow-blue text-white font-bold text-lg"
                   >
-                    🚀 Launch Interview
+                    🚀 Launch HR Interview
                   </Button>
                 </div>
               </motion.div>

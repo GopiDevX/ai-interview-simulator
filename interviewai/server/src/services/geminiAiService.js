@@ -60,46 +60,51 @@ const getInterviewerResponse = async (stage, questionIndex, questionPlan, candid
   if (!ai) return mockAiService.getInterviewerResponse(stage, questionIndex, questionPlan, candidateMessage)
 
   let systemInstruction = `
-    You are a Senior Technical Interviewer at ${questionPlan?.company || 'a top tech company'}. 
-    You are currently conducting an interview for a ${questionPlan?.role || 'Software Engineering'} position.
-    The interview is currently in the '${stage}' stage.
-    Keep your responses concise, conversational, and realistic (1-3 sentences max).
-    Do NOT break character. Speak directly to the candidate.
-    If the candidate's answer was good, acknowledge it briefly. If it was poor, politely probe deeper or move on.
+    You are a Lead IT Talent Acquisition Partner & Senior Technical HR Interviewer at ${questionPlan?.company || 'a top-tier enterprise technology company'}.
+    You are conducting an official interview for a ${questionPlan?.role || 'Software Engineering'} candidate.
+    Current interview stage: '${stage}'.
+
+    CORE HR INTERVIEWING PRINCIPLES:
+    1. Tone: Warm, articulate, perceptive, highly professional, and encouraging yet rigorous.
+    2. Conversational Realism: Speak directly to the candidate as a real human HR interviewer across a table (1-3 sentences max).
+    3. Active Affirmation: Start by briefly acknowledging their specific points (e.g. "I appreciate you walking me through that database index design", "That's a great example of handling sprint pressure").
+    4. STAR Framework: For behavioral/experience questions, evaluate if they demonstrated Situation, Task, Action, and Result with quantifiable impact.
+    5. Follow-ups: If their answer was too generic or brief, politely ask for the specific technical action THEY personally took.
+    6. Never break character. Never state "As an AI".
   `
 
   if (resumeText) {
     // Check if this is RAG-formatted context (contains section labels) or raw text
     const isRagFormatted = resumeText.includes('[From ') && resumeText.includes(' section')
     if (isRagFormatted) {
-      systemInstruction += `\n\nRELEVANT SECTIONS FROM THE CANDIDATE'S RESUME (retrieved via semantic search for this question's context):\n"""\n${resumeText}\n"""\nIMPORTANT: These are the MOST RELEVANT sections of the candidate's resume for the current conversation topic. Use them to ask deeply personalized follow-up questions referencing specific projects, technologies, or achievements mentioned. Do NOT ask generic questions when specific context is available.`
+      systemInstruction += `\n\nRELEVANT SECTIONS FROM THE CANDIDATE'S RESUME (retrieved via semantic search):\n"""\n${resumeText}\n"""\nIMPORTANT: Use these specific projects, metrics, and tools mentioned to ask tailored follow-up questions.`
     } else {
-      systemInstruction += `\n\nCANDIDATE'S RESUME:\n"""\n${resumeText}\n"""\nIMPORTANT: Use the candidate's resume provided above to tailor your questions and responses to their actual past experience, projects, and skills where applicable.`
+      systemInstruction += `\n\nCANDIDATE'S RESUME:\n"""\n${resumeText}\n"""\nIMPORTANT: Tailor your questions and feedback to their stated achievements, tools, and roles.`
     }
   }
 
   // Inject company-specific intelligence from the curated dataset
   if (companyContext) {
-    systemInstruction += `\n\n${companyContext}\nIMPORTANT: Use the company-specific interview data above to calibrate your questions to the EXACT difficulty level, focus areas, and interview style of this company. Ask questions that this company actually asks in real interviews. Adjust your expectations based on the company's hiring criteria.`
+    systemInstruction += `\n\n${companyContext}\nIMPORTANT: Use the company-specific rubric to calibrate your questions to this company's culture and hiring bar.`
   }
 
-  let prompt = `The candidate just said: "${candidateMessage}".\n\n`
+  let prompt = `The candidate just answered: "${candidateMessage}".\n\n`
   
   if (stage === 'intro') {
-    prompt += `Acknowledge their introduction and ask the first background question: ${questionPlan?.backgroundQuestions?.[0]?.question || 'Can you walk me through your most impactful project?'}`
+    prompt += `Welcome them warmly to the interview, acknowledge their background, and transition smoothly to ask the first project question: "${questionPlan?.backgroundQuestions?.[0]?.question || 'Can you walk me through the most technically challenging project you have led, and your specific role in it?'}"`
   } else if (stage === 'background') {
-    const q = questionPlan?.backgroundQuestions?.[questionIndex] || { question: "Let's move on to some technical questions." }
-    prompt += `Respond to their answer and then ask: ${q.question}`
+    const q = questionPlan?.backgroundQuestions?.[questionIndex] || { question: "Let's transition into your technical core competencies." }
+    prompt += `Acknowledge their response with a natural recruiter observation, and then ask: "${q.question}"`
   } else if (stage === 'technical') {
-    const q = questionPlan?.technicalQuestions?.[questionIndex] || { question: "Let's shift to some behavioral questions." }
-    prompt += `Acknowledge their technical answer and ask: ${q.question}`
+    const q = questionPlan?.technicalQuestions?.[questionIndex] || { question: "Thank you for that technical breakdown. Let's move into situational and teamwork scenarios." }
+    prompt += `Provide a concise professional reaction to their technical reasoning, and ask: "${q.question}"`
   } else if (stage === 'behavioral') {
-    const q = questionPlan?.behavioralQuestions?.[questionIndex] || { question: "Great. Let's move to a coding exercise now." }
-    prompt += `Acknowledge their behavioral answer and ask: ${q.question}`
+    const q = questionPlan?.behavioralQuestions?.[questionIndex] || { question: "Excellent insight. Next, we will transition into our practical coding and problem-solving evaluation." }
+    prompt += `Acknowledge their behavioral STAR answer and ask: "${q.question}"`
   } else if (stage === 'coding') {
-    prompt += `Encourage them on the coding exercise.`
+    prompt += `Encourage them warmly as they transition into the live coding challenge.`
   } else {
-    prompt += `Ask a relevant follow up question.`
+    prompt += `Provide a polite, thoughtful HR follow-up question.`
   }
 
   try {

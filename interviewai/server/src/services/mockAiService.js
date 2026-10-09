@@ -228,36 +228,36 @@ const evaluateCode = (question, code, language) => {
 const getInterviewerResponse = (stage, questionIndex, questionPlan, candidateMessage) => {
   const responses = {
     intro: [
-      `Hello! I'm Alex, a senior technical interviewer here. Thanks for joining us today for the ${questionPlan?.role || 'engineering'} position. I'm excited to learn more about your background and experience. To kick things off, could you please give me a brief introduction about yourself — your background, what you've been working on recently, and what excites you about this opportunity?`
+      `Hello and welcome! I am your lead technical recruiter for today's interview session for the ${questionPlan?.role || 'Software Engineer'} role at ${questionPlan?.company || 'our team'}. I'm excited to learn more about your engineering journey. To get us started, please walk me through your professional background, your core technical focus, and what drives your interest in this position.`
     ],
     background: questionPlan?.backgroundQuestions?.map(q => {
-      return `Thank you for sharing that — it's really helpful context. ${q.question}`
+      return `Thank you for walking me through that context — it gives great clarity on your experience. ${q.question}`
     }) || [
-      "Thank you for that introduction! Let me ask you about your experience. Can you walk me through your most impactful project and what your specific contribution was?",
-      "That's fascinating. Based on what you've shared, can you tell me about a challenging technical problem you solved and how you approached it?"
+      "Thank you for that thoughtful introduction. Looking at your engineering background, could you walk me through your most impactful project, the architectural choices you made, and your specific contribution?",
+      "That is very insightful. Can you describe a critical engineering blocker you encountered during that deployment and how you systematically resolved it?"
     ],
     technical: questionPlan?.technicalQuestions?.map((q, i) => {
       const transitions = [
-        "Great answer, thank you. Let's move into some more technical territory now.",
-        "I appreciate the detail there. Let's continue with another technical question.",
-        "Very interesting perspective. One more technical question for you."
+        "I appreciate your technical clarity. Let's delve into architectural and core system concepts now.",
+        "That's a solid explanation of the trade-offs. Let's explore another core technical scenario.",
+        "Understood. Moving forward to our next technical competency question:"
       ]
       return `${transitions[i % transitions.length]} ${q.question}`
     }) || [],
     behavioral: questionPlan?.behavioralQuestions?.map((q, i) => {
       const transitions = [
-        "Excellent technical knowledge! Let's shift to some behavioral questions now.",
-        "Thanks for that example. I have one more situational question."
+        "Great technical depth. Let's shift into team dynamics and behavioral scenarios using the STAR framework.",
+        "Thank you for sharing that experience. Here is a situational question regarding team collaboration:"
       ]
       return `${transitions[i % transitions.length]} ${q.question}`
     }) || [],
     coding: [
-      "Fantastic — you've done really well in this section. Let's move to a short coding exercise now. I'll hand you over to the coding environment. Good luck!"
+      "You have done a commendable job in the conversational round. We will now proceed to our interactive coding and algorithmic evaluation. Best of luck!"
     ],
     followup: [
-      `That's an interesting answer. Could you elaborate a bit more on ${candidateMessage?.split(' ').slice(0, 3).join(' ') || 'that point'}? Specifically, what were the trade-offs you considered?`,
-      "I appreciate that response. Can you give me a specific example from your experience that illustrates this point?",
-      "Interesting perspective. How would you approach this differently if you were working in a larger scale system?"
+      `That is an interesting approach. Could you elaborate specifically on how you evaluated trade-offs for ${candidateMessage?.split(' ').slice(0, 3).join(' ') || 'that component'}?`,
+      "I appreciate that context. What measurable metric or performance indicator did you use to validate that solution?",
+      "From an enterprise engineering standpoint, how would your approach scale under high concurrency or distributed load?"
     ]
   }
 
@@ -265,7 +265,7 @@ const getInterviewerResponse = (stage, questionIndex, questionPlan, candidateMes
   const response = stageResponses[questionIndex % stageResponses.length] ||
     stageResponses[stageResponses.length - 1]
 
-  return response || "Thank you for sharing that. Let's move on to the next topic."
+  return response || "Thank you for that comprehensive answer. Let's proceed to the next area."
 }
 
 const generateReport = (transcript, sessionData) => {
