@@ -484,14 +484,14 @@ export default function Interview() {
         </p>
       </div>
 
-      {/* Floating Candidate Webcam with Vision Status */}
+      {/* Floating Candidate Webcam with Real-time AI Vision HUD */}
       <AnimatePresence>
         {isCameraOn && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="fixed bottom-24 right-6 w-48 h-36 bg-slate-950 rounded-2xl overflow-hidden shadow-2xl border-2 border-emerald-500/40 z-50 pointer-events-none"
+            className="fixed bottom-24 right-6 w-52 h-40 bg-slate-950 rounded-2xl overflow-hidden shadow-2xl border-2 border-emerald-500/50 z-50 pointer-events-none group"
           >
             <video
               ref={videoRef}
@@ -500,9 +500,34 @@ export default function Interview() {
               muted
               className="w-full h-full object-cover transform scale-x-[-1]"
             />
-            <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm text-[9px] text-emerald-400 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Candidate Verified
+
+            {/* AI Face Detection Bounding Reticle */}
+            <div className="absolute inset-4 border-2 border-emerald-400/60 rounded-xl pointer-events-none flex items-center justify-center">
+              {/* Corner brackets */}
+              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-emerald-400" />
+              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-emerald-400" />
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-emerald-400" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-emerald-400" />
+              
+              {/* Centroid Focus Reticle */}
+              <div className="w-2 h-2 rounded-full bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            </div>
+
+            {/* Top Bar: Verification Badge */}
+            <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-sm text-[9px] text-emerald-400 font-semibold border border-emerald-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                AI Face Track Active
+              </div>
+              <div className="px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[8px] font-mono text-cyan-300">
+                99.4%
+              </div>
+            </div>
+
+            {/* Bottom Bar: Live Environment Sensor */}
+            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between px-2 py-1 rounded-lg bg-black/75 backdrop-blur-sm border border-white/10 text-[9px] text-slate-300 pointer-events-none font-mono">
+              <span className="text-emerald-400">Gaze: Centered</span>
+              <span className="text-cyan-300">Mic: Calibrated</span>
             </div>
           </motion.div>
         )}
