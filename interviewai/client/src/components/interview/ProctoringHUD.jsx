@@ -6,6 +6,7 @@ export default function ProctoringHUD({
   isStrict = true,
   onIncidentLogged,
   onTrustScoreChange,
+  onVoiceIntervention,
   isCameraOn = false,
   videoRef
 }) {
@@ -33,6 +34,7 @@ export default function ProctoringHUD({
   const visionIntervalRef = useRef(null)
   const deviationTimerRef = useRef(0)
   const lastLuminanceRef = useRef(null)
+  const lastVoiceWarnRef = useRef(0)
 
   // Notify parent of trust score changes
   useEffect(() => {
@@ -53,6 +55,19 @@ export default function ProctoringHUD({
 
     setWarningMessage(description)
     setTimeout(() => setWarningMessage(null), 5000)
+
+    // Trigger verbal HR/Proctor intervention with throttle
+    const now = Date.now()
+    if (now - lastVoiceWarnRef.current > 8000) {
+      lastVoiceWarnRef.current = now
+      if (type === 'TAB_SWITCH') {
+        onVoiceIntervention?.('Candidate, please note that navigating away from the interview screen is strictly recorded by our proctoring system. Please refocus.')
+      } else if (type === 'GAZE_DEVIATION') {
+        onVoiceIntervention?.('Please keep your focus directed at the camera and avoid looking at secondary screens or notes.')
+      } else if (type === 'FACE_ABSENT') {
+        onVoiceIntervention?.('Your camera feed appears out of focus or obstructed. Please remain centered in front of the lens.')
+      }
+    }
 
     toast.error(`HR Proctor Alert: ${description}`, {
       icon: '🛡️',

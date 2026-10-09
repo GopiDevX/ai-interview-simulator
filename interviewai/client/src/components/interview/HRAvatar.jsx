@@ -196,28 +196,8 @@ export default function HRAvatar({
           {/* Sizable Video Frame (Expansive 50vh prominence) */}
           <div className="relative w-60 h-60 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-3xl overflow-hidden border-2 border-white/20 bg-slate-950 shadow-2xl">
             
-            {/* Photorealistic High-Definition HR Video Stream with Human Physics */}
-            <motion.div
-              animate={{
-                // Natural human nodding when candidate is typing or HR is speaking
-                y: isSpeaking 
-                  ? [0, -3, 1, -2, 0] 
-                  : humanAction.status === 'listening_nod' 
-                  ? [0, 4, 1, 3, 0] 
-                  : humanAction.status === 'evaluating'
-                  ? [0, 5, 4, 5, 0]
-                  : [0, -1, 0],
-                // Subtle human posture shift
-                x: isSpeaking ? [0, 1.5, -1.5, 0] : 0,
-                scale: isSpeaking ? [1, 1.02, 0.995, 1.015, 1] : [1, 1.008, 1]
-              }}
-              transition={{
-                duration: isSpeaking ? 0.9 : humanAction.status === 'listening_nod' ? 2.5 : 4,
-                repeat: Infinity,
-                ease: 'easeInOut'
-              }}
-              className="w-full h-full relative"
-            >
+            {/* Photorealistic High-Definition Steady HR Video Stream */}
+            <div className="w-full h-full relative">
               <img
                 src={activePersona.image}
                 alt={activePersona.name}
@@ -227,12 +207,12 @@ export default function HRAvatar({
               {/* Dynamic Speaking Illumination Glow */}
               {isSpeaking && (
                 <motion.div
-                  animate={{ opacity: [0.15, 0.5, 0.25, 0.55, 0.15] }}
-                  transition={{ duration: 0.75, repeat: Infinity }}
+                  animate={{ opacity: [0.15, 0.45, 0.25, 0.5, 0.15] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
                   className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-blue-500/30 via-transparent to-transparent pointer-events-none"
                 />
               )}
-            </motion.div>
+            </div>
 
             {/* Top In-Frame Live Recruiter Action Watermark */}
             <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-white/15 text-[11px] text-slate-100 shadow-lg">

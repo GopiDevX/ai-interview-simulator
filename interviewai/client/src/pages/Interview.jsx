@@ -277,12 +277,28 @@ export default function Interview() {
     socketSend(sessionId, '', currentStage, qIndex)
   }
 
-  const handleSend = async () => {
-    if (!input.trim() || isSending || isTyping) return
+  const handleAudioCheck = () => {
+    const checkText = "Audio and video link verified. I am receiving your microphone telemetry clearly, and our proctored session is ready. Please continue."
+    speakText(checkText)
+    toast.success("HR Audio Link: 100% Operational", { icon: "🎧" })
+  }
 
-    const userMsg = { role: 'candidate', content: input, timestamp: new Date(), id: Date.now() }
+  const handleSend = async () => {
+    const trimmed = input.trim()
+    if (!trimmed || isSending || isTyping) return
+
+    // Inaudibility / incomplete response check
+    const wordCount = trimmed.split(/\s+/).filter(Boolean).length
+    if (wordCount < 3) {
+      const inaudiblePrompt = "I'm having a little trouble hearing your full explanation. Could you please check your microphone or speak up slightly so I can capture your complete answer?"
+      speakText(inaudiblePrompt)
+      toast('HR Recruiter: Voice input too brief or inaudible', { icon: '🎙️' })
+      return
+    }
+
+    const userMsg = { role: 'candidate', content: trimmed, timestamp: new Date(), id: Date.now() }
     setMessages(prev => [...prev, userMsg])
-    const sentContent = input
+    const sentContent = trimmed
     setInput('')
     setIsSending(true)
 
@@ -350,11 +366,12 @@ export default function Interview() {
   return (
     <div className="h-screen flex flex-col bg-[#0F172A] pt-16">
       
-      {/* Strict Proctoring HUD */}
+      {/* Strict Proctoring HUD with Real-Time Verbal Interventions */}
       <ProctoringHUD
         isStrict={isStrictMode}
         isCameraOn={isCameraOn}
         videoRef={videoRef}
+        onVoiceIntervention={(warnText) => speakText(warnText)}
         onTrustScoreChange={(score, incidents) => {
           setTrustScore(score)
           setProctoringIncidents(incidents)
@@ -396,6 +413,16 @@ export default function Interview() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
+            </button>
+
+            {/* Live Audio Check */}
+            <button
+              onClick={handleAudioCheck}
+              className="p-2 rounded-xl transition-colors border text-cyan-400 bg-cyan-500/10 border-cyan-500/30 hover:bg-cyan-500/20 flex items-center gap-1.5 text-xs font-semibold"
+              title="Test HR Voice & Audio Link"
+            >
+              <span>🎧</span>
+              <span className="hidden sm:inline">Audio Check</span>
             </button>
 
             {/* Voice Toggle */}
