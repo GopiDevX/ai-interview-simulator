@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useCallback, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
@@ -114,12 +114,18 @@ const TYPES = [
 
 export default function Setup() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const queryParams = new URLSearchParams(location.search)
+  const initialCompany = queryParams.get('company') || ''
+  const initialRole = queryParams.get('role') || ''
+  const driveId = queryParams.get('driveId') || null
+
   const [step, setStep] = useState(1)
   const [resume, setResume] = useState(null)
   const [resumeText, setResumeText] = useState('')
   const [selectedDemoId, setSelectedDemoId] = useState(null)
-  const [role, setRole] = useState('')
-  const [company, setCompany] = useState('')
+  const [role, setRole] = useState(initialRole)
+  const [company, setCompany] = useState(initialCompany)
   const [interviewType, setInterviewType] = useState('full')
   const [selectedPersona, setSelectedPersona] = useState('sarah')
   const [isStrictMode, setIsStrictMode] = useState(true)
@@ -164,6 +170,9 @@ export default function Setup() {
       } else if (resumeText) {
         formData.append('resumeText', resumeText)
       }
+      if (driveId) {
+        formData.append('driveId', driveId)
+      }
 
       const { data } = await interviewApi.start(formData)
       toast.success('Interview session created! Good luck 🍀')
@@ -207,6 +216,13 @@ export default function Setup() {
         >
           <h1 className="text-4xl font-display font-bold text-white mb-3">Set Up Your Interview</h1>
           <p className="text-slate-400 font-medium">Configure your personalized mock interview</p>
+
+          {driveId && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-electric-cyan/10 border border-electric-cyan/30 text-electric-cyan text-xs font-bold shadow-lg shadow-cyan-500/10">
+              <span className="w-2 h-2 rounded-full bg-electric-cyan animate-pulse"></span>
+              <span>🎓 Official Campus Placement Drive Track Active · Submissions will be synced to your College Roster</span>
+            </div>
+          )}
         </motion.div>
 
         {/* Step Progress */}

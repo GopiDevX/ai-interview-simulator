@@ -4,14 +4,14 @@
 
 #### Terminal 1 — Backend Server
 ```powershell
-cd "c:\Projects\AI Interview Platfrom\interviewai\server"
+cd "d:\ai-interview-simulator-1\interviewai\server"
 npm install
 npm run dev
 ```
 
 #### Terminal 2 — Frontend Client
 ```powershell
-cd "c:\Projects\AI Interview Platfrom\interviewai\client"
+cd "d:\ai-interview-simulator-1\interviewai\client"
 npm install
 npm run dev
 ```
@@ -23,7 +23,7 @@ npm run dev
 
 Run the entire platform (MongoDB + Express Backend + Nginx React Frontend):
 ```powershell
-cd "c:\Projects\AI Interview Platfrom\interviewai"
+cd "d:\ai-interview-simulator-1\interviewai"
 docker compose up --build
 ```
 > Open http://localhost in your browser.

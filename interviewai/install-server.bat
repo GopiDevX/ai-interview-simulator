@@ -1,5 +1,5 @@
 @echo off
-cd /d "c:\Projects\AI Interview Platfrom\interviewai\server"
+cd /d "%~dp0server"
 call npm install
 echo.
 echo === Installation Complete ===

@@ -145,6 +145,16 @@ export default function Dashboard() {
             >
               🛠 Promote to Recruiter (Test)
             </button>
+            <Link to="/college">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-5 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl font-semibold text-sm transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+              >
+                <span>🎓</span>
+                Campus TPO Portal
+              </motion.button>
+            </Link>
             <Link to="/matchmaking">
               <motion.button
                 whileHover={{ scale: 1.05 }}

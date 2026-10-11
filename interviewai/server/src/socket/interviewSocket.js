@@ -29,11 +29,12 @@ const setupInterviewSocket = (io) => {
         // Note: we can't easily await the Gemini service here if it was refactored in the controller,
         // so we'll just use the mock logic here or let the controller handle AI. 
         // For the sake of the existing code, we'll keep the mock logic fallback.
-        const responseText = getInterviewerResponse(
+        const responseText = await getInterviewerResponse(
           stage || 'intro',
           questionIndex || 0,
           questionPlan,
-          content
+          content,
+          sessionId
         )
 
         const words = responseText.split(' ')

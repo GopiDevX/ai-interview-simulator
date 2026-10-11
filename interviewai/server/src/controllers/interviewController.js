@@ -65,7 +65,7 @@ const updateSession = async (sessionId, update) => {
 // POST /api/interviews
 const startInterview = async (req, res) => {
   try {
-    const { role, company, interviewType, resumeText } = req.body
+    const { role, company, interviewType, resumeText, driveId, collegeId, rollNumber } = req.body
     const userId = req.user?.id || 'guest'
     const sessionId = uuid()
 
@@ -134,6 +134,10 @@ const startInterview = async (req, res) => {
       transcript: [],
       stage: 'intro',
       status: 'active',
+      driveId: driveId || null,
+      collegeId: collegeId || null,
+      rollNumber: rollNumber || null,
+      integrityScore: 100,
       startedAt: new Date()
     }
 
@@ -428,6 +432,30 @@ const generateReportHandler = async (req, res) => {
       { sessionId },
       { $set: { status: 'completed', completedAt: new Date() } }
     ).catch(() => null)
+
+    // Sync to College Mock Drive if tagged
+    if (session.driveId) {
+      try {
+        const { submitDriveMock } = require('./collegeController')
+        const overall = report.overallScore || Math.round(((report.scores?.technical || 80) + (report.scores?.communication || 80)) / 2)
+        submitDriveMock({
+          body: {
+            driveId: session.driveId,
+            rollNumber: session.rollNumber,
+            email: req.user?.email,
+            sessionId,
+            overallScore: overall,
+            technicalScore: report.scores?.technical || overall,
+            communicationScore: report.scores?.communication || overall,
+            codeScore: session.codeScore || 80,
+            integrityScore: session.integrityScore || 96,
+            flaggedIssues: []
+          }
+        }, { json: () => {} })
+      } catch (colErr) {
+        console.warn('Auto-sync college drive mock error:', colErr.message)
+      }
+    }
 
     // Trigger email report asynchronously and increment interview count
     if (session.userId && session.userId !== 'guest') {

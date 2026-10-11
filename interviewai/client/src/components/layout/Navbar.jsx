@@ -40,6 +40,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-2">
               {[
                 { path: '/dashboard', label: 'Dashboard' },
+                { path: '/college', label: '🎓 Campus Portal' },
                 { path: '/setup', label: 'New Interview' },
               ].map(({ path, label }) => (
                 <Link

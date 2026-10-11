@@ -42,6 +42,7 @@ export default function Interview() {
   const [isStrictMode, setIsStrictMode] = useState(location.state?.isStrictMode !== false)
   const [trustScore, setTrustScore] = useState(100)
   const [proctoringIncidents, setProctoringIncidents] = useState([])
+  const [isAutoSendVoice, setIsAutoSendVoice] = useState(true)
 
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
@@ -51,6 +52,12 @@ export default function Interview() {
   const selectedPersonaRef = useRef(selectedPersona)
   const videoRef = useRef(null)
   const streamRef = useRef(null)
+  const silenceTimerRef = useRef(null)
+  const inputValRef = useRef('')
+  const handleSendRef = useRef(null)
+  const isTypingRef = useRef(isTyping)
+  const isSendingRef = useRef(isSending)
+  const isAutoSendVoiceRef = useRef(isAutoSendVoice)
 
   useEffect(() => {
     isVoiceEnabledRef.current = isVoiceEnabled
@@ -59,6 +66,22 @@ export default function Interview() {
   useEffect(() => {
     selectedPersonaRef.current = selectedPersona
   }, [selectedPersona])
+
+  useEffect(() => {
+    inputValRef.current = input
+  }, [input])
+
+  useEffect(() => {
+    isTypingRef.current = isTyping
+  }, [isTyping])
+
+  useEffect(() => {
+    isSendingRef.current = isSending
+  }, [isSending])
+
+  useEffect(() => {
+    isAutoSendVoiceRef.current = isAutoSendVoice
+  }, [isAutoSendVoice])
 
   // Pre-load natural voices on mount
   useEffect(() => {
@@ -71,7 +94,7 @@ export default function Interview() {
     }
   }, [])
 
-  // Setup Speech Recognition
+  // Setup Speech Recognition with VAD & Interruption detection
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (SpeechRecognition) {
@@ -81,6 +104,12 @@ export default function Interview() {
       recognition.lang = 'en-US'
 
       recognition.onresult = (event) => {
+        // HUMAN INTERRUPTION: If AI is speaking and user speaks, stop AI immediately
+        if (window.speechSynthesis && window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel()
+          setIsAISpeaking(false)
+        }
+
         let finalTranscript = ''
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
@@ -88,7 +117,22 @@ export default function Interview() {
           }
         }
         if (finalTranscript) {
-          setInput(prev => prev + (prev ? ' ' : '') + finalTranscript)
+          const updated = (inputValRef.current ? inputValRef.current + ' ' : '') + finalTranscript.trim()
+          setInput(updated)
+          inputValRef.current = updated
+
+          // AUTO-SEND ON PAUSE (Hands-Free): Auto-transmits after 2.2s of silence
+          if (isAutoSendVoiceRef.current) {
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+            silenceTimerRef.current = setTimeout(() => {
+              const textToSend = inputValRef.current.trim()
+              const words = textToSend.split(/\s+/).filter(Boolean)
+              if (words.length >= 3 && !isTypingRef.current && !isSendingRef.current) {
+                toast('🎙️ Natural pause detected — transmitting your answer', { icon: '⚡' })
+                handleSendRef.current?.()
+              }
+            }, 2200)
+          }
         }
       }
 
@@ -209,7 +253,18 @@ export default function Interview() {
     utterance.pitch = persona.gender === 'female' ? 1.04 : 0.96
 
     utterance.onstart = () => setIsAISpeaking(true)
-    utterance.onend = () => setIsAISpeaking(false)
+    utterance.onend = () => {
+      setIsAISpeaking(false)
+      // When HR finishes speaking, auto-start listening so candidate can answer immediately without clicking
+      if (recognitionRef.current && isVoiceEnabledRef.current) {
+        try {
+          recognitionRef.current.start()
+          setIsListening(true)
+        } catch (e) {
+          // Already listening
+        }
+      }
+    }
     utterance.onerror = () => setIsAISpeaking(false)
 
     window.speechSynthesis.speak(utterance)
@@ -284,8 +339,10 @@ export default function Interview() {
   }
 
   const handleSend = async () => {
-    const trimmed = input.trim()
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+    const trimmed = (input || inputValRef.current || '').trim()
     if (!trimmed || isSending || isTyping) return
+    inputValRef.current = ''
 
     // Inaudibility / incomplete response check
     const wordCount = trimmed.split(/\s+/).filter(Boolean).length
@@ -334,6 +391,7 @@ export default function Interview() {
 
     socketSend(sessionId, sentContent, nextStage, nextQIndex)
   }
+  handleSendRef.current = handleSend
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -510,6 +568,30 @@ export default function Interview() {
 
       {/* Input / Response Bar */}
       <div className="flex-shrink-0 border-t border-white/5 bg-[#0F172A]/90 backdrop-blur p-4">
+        <div className="max-w-3xl mx-auto mb-2 flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : isAISpeaking ? 'bg-blue-400' : 'bg-emerald-400'}`} />
+            <span className="text-xs font-semibold text-slate-300">
+              {isListening
+                ? (isAutoSendVoice ? '🎙️ Mic Active (Speak freely · Auto-submits when you pause)' : '🎙️ Mic Active (Listening...)')
+                : isAISpeaking
+                ? '🗣️ HR Speaking (Speak anytime to interrupt)'
+                : '🎙️ Microphone Ready (Hands-Free)'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAutoSendVoice(!isAutoSendVoice)}
+            className={`text-[11px] px-2.5 py-1 rounded-lg font-bold border transition-all ${
+              isAutoSendVoice
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                : 'bg-white/5 text-slate-400 border-white/10'
+            }`}
+          >
+            {isAutoSendVoice ? '⚡ Hands-Free Auto-Send: ON' : '⌨️ Manual Send: ON'}
+          </button>
+        </div>
+
         <div className="max-w-3xl mx-auto flex gap-3 items-end">
           <div className="flex-1">
             <textarea

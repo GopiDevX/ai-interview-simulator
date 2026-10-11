@@ -8,7 +8,7 @@ node --version
 echo.
 
 echo [1/2] Installing SERVER dependencies...
-cd /d "c:\Projects\AI Interview Platfrom\interviewai\server"
+cd /d "%~dp0server"
 call npm install
 if %errorlevel% neq 0 (
     echo ERROR: Server install failed
@@ -19,7 +19,7 @@ echo [OK] Server dependencies installed!
 
 echo.
 echo [2/2] Installing CLIENT dependencies...
-cd /d "c:\Projects\AI Interview Platfrom\interviewai\client"
+cd /d "%~dp0client"
 call npm install
 if %errorlevel% neq 0 (
     echo ERROR: Client install failed
