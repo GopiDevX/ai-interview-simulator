@@ -10,8 +10,46 @@ try {
 }
 const User = require('../models/mongo/User')
 
-// In-memory user store as fallback when MongoDB is unavailable
+const fs = require('fs')
+const path = require('path')
+
+// In-memory user store with persistent file backing for resilient offline mode
 const inMemoryUsers = new Map()
+const USERS_FILE = path.join(__dirname, '../data/persisted_users.json')
+
+function loadPersistedUsers() {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'))
+      for (const u of data) {
+        u.save = async function() { return this }
+        inMemoryUsers.set(u.email.toLowerCase(), u)
+      }
+    }
+  } catch (err) {
+    console.error('Error loading persisted users:', err.message)
+  }
+}
+
+function savePersistedUsers() {
+  try {
+    const dir = path.dirname(USERS_FILE)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    const list = Array.from(inMemoryUsers.values()).map(u => ({
+      _id: u._id,
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      passwordHash: u.passwordHash,
+      tier: u.tier,
+      role: u.role,
+      institutionId: u.institutionId
+    }))
+    fs.writeFileSync(USERS_FILE, JSON.stringify(list, null, 2), 'utf8')
+  } catch (err) {
+    console.error('Error persisting users:', err.message)
+  }
+}
 
 // Pre-seed demo users for offline testing
 const demoHash = bcrypt.hashSync('password123', 10)
@@ -52,6 +90,32 @@ inMemoryUsers.set('alumni.google@campus.edu', {
   institutionId: 'inst-demo-campus',
   save: async function() { return this }
 })
+
+inMemoryUsers.set('recruiter@example.com', {
+  _id: 'rec-demo-01',
+  id: 'rec-demo-01',
+  name: 'Sarah Recruiter',
+  email: 'recruiter@example.com',
+  passwordHash: demoHash,
+  tier: 'enterprise',
+  role: 'recruiter',
+  institutionId: 'inst-demo-campus',
+  save: async function() { return this }
+})
+
+inMemoryUsers.set('admin@campus.edu', {
+  _id: 'adm-demo-01',
+  id: 'adm-demo-01',
+  name: 'Dr. Placement Officer',
+  email: 'admin@campus.edu',
+  passwordHash: campusHash,
+  tier: 'enterprise',
+  role: 'placement_officer',
+  institutionId: 'inst-demo-campus',
+  save: async function() { return this }
+})
+
+loadPersistedUsers()
 
 const isMongoAvailable = () => mongoose.connection.readyState === 1
 
@@ -103,11 +167,13 @@ const createUser = async ({ name, email, passwordHash, authProvider = 'local', g
     googleId,
     avatar,
     tier: 'free',
-    role: 'candidate',
+    role: normEmail.includes('alumni') ? 'alumni' : (normEmail.includes('recruiter') ? 'recruiter' : 'student'),
+    institutionId: 'inst-demo-campus',
     createdAt: new Date(),
-    save: async function() { inMemoryUsers.set(normEmail, this); return this }
+    save: async function() { inMemoryUsers.set(normEmail, this); savePersistedUsers(); return this }
   }
   inMemoryUsers.set(normEmail, user)
+  savePersistedUsers()
   return user
 }
 

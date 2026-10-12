@@ -15,15 +15,19 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name || !email || !password) return toast.error('Please fill in all fields')
+    const cleanName = name.trim()
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanName || !cleanEmail || !password) return toast.error('Please fill in all fields')
+    if (cleanName.length < 2) return toast.error('Name must be at least 2 characters')
     if (password.length < 6) return toast.error('Password must be at least 6 characters')
     setLoading(true)
     try {
-      await register(name, email, password)
+      await register(cleanName, cleanEmail, password)
       toast.success('Account created! Let\'s get started 🚀')
       navigate('/setup')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Registration failed')
+      const msg = err.response?.data?.details?.[0]?.message || err.response?.data?.error || 'Registration failed'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
