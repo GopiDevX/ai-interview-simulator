@@ -13,8 +13,10 @@ const User = require('../models/mongo/User')
 // In-memory user store as fallback when MongoDB is unavailable
 const inMemoryUsers = new Map()
 
-// Pre-seed a demo user for offline testing
+// Pre-seed demo users for offline testing
 const demoHash = bcrypt.hashSync('password123', 10)
+const campusHash = bcrypt.hashSync('CampusUser@2026', 10)
+
 inMemoryUsers.set('demo@example.com', {
   _id: 'demo-user-12345',
   id: 'demo-user-12345',
@@ -22,7 +24,32 @@ inMemoryUsers.set('demo@example.com', {
   email: 'demo@example.com',
   passwordHash: demoHash,
   tier: 'free',
-  role: 'candidate',
+  role: 'student',
+  institutionId: 'inst-demo-campus',
+  save: async function() { return this }
+})
+
+inMemoryUsers.set('student1@campus.edu', {
+  _id: 'stu-demo-01',
+  id: 'stu-demo-01',
+  name: 'Aarav Patel',
+  email: 'student1@campus.edu',
+  passwordHash: campusHash,
+  tier: 'pro',
+  role: 'student',
+  institutionId: 'inst-demo-campus',
+  save: async function() { return this }
+})
+
+inMemoryUsers.set('alumni.google@campus.edu', {
+  _id: 'alm-google-1',
+  id: 'alm-google-1',
+  name: 'Ananya Sharma',
+  email: 'alumni.google@campus.edu',
+  passwordHash: campusHash,
+  tier: 'enterprise',
+  role: 'alumni',
+  institutionId: 'inst-demo-campus',
   save: async function() { return this }
 })
 
@@ -86,9 +113,19 @@ const createUser = async ({ name, email, passwordHash, authProvider = 'local', g
 
 const generateTokens = (user) => {
   const userId = user._id ? user._id.toString() : user.id
-  const payload = { id: userId, email: user.email, name: user.name }
-  const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'interviewai_secret', { expiresIn: '7d' })
-  const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'interviewai_refresh', { expiresIn: '30d' })
+  const jwtSecret = process.env.JWT_SECRET
+  if (!jwtSecret) {
+    throw new Error('FATAL: JWT_SECRET environment variable is missing!')
+  }
+  const payload = {
+    id: userId,
+    email: user.email,
+    name: user.name,
+    role: user.role || 'student',
+    institutionId: user.institutionId || user.collegeId || null
+  }
+  const accessToken = jwt.sign(payload, jwtSecret, { expiresIn: '7d' })
+  const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || jwtSecret, { expiresIn: '30d' })
   return { accessToken, refreshToken }
 }
 
@@ -151,7 +188,9 @@ const refresh = async (req, res) => {
   try {
     const { refreshToken } = req.body
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'interviewai_refresh')
+    const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+    if (!refreshSecret) return res.status(500).json({ error: 'Server authentication configuration error' })
+    const decoded = jwt.verify(refreshToken, refreshSecret)
     const user = await findUserById(decoded.id)
     if (!user) return res.status(401).json({ error: 'User not found' })
 

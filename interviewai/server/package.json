@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "test": "node --test test/api.test.js",
+    "seed:campus": "node src/scripts/seedCampusData.js",
+    "seed:admin": "node src/scripts/seedAdmin.js",
+    "eval:ai": "node src/scripts/runAiEvaluationReport.js",
     "build": "cd ../client && npm install && npm run build"
   },
   "dependencies": {

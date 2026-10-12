@@ -1,0 +1,63 @@
+name: Campus Platform CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build:
+    name: Test & Build Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: interviewai/server/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python ML Dependencies
+        working-directory: interviewai/server/ml
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify ML GroupShuffleSplit Training
+        working-directory: interviewai/server/ml
+        run: |
+          python train_model.py
+
+      - name: Install Server Dependencies
+        working-directory: interviewai/server
+        run: npm ci
+
+      - name: Run Server API & Security Tests
+        working-directory: interviewai/server
+        env:
+          JWT_SECRET: ci_github_actions_test_secret_1234567890
+        run: npm test
+
+      - name: Run AI Systems Evaluation Benchmark
+        working-directory: interviewai/server
+        env:
+          JWT_SECRET: ci_github_actions_test_secret_1234567890
+        run: npm run eval:ai
+
+      - name: Install Client Dependencies
+        working-directory: interviewai/client
+        run: npm ci
+
+      - name: Build Frontend Client Bundle
+        working-directory: interviewai/client
+        run: npm run build

@@ -130,21 +130,18 @@ export default function Dashboard() {
               className="px-5 py-3 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-xl font-semibold text-sm transition-all hover:bg-blue-500/20 flex items-center gap-2"
             >
               <span>🧠</span>
-              ML Model Metrics (94.8%)
+              ML Model Evaluation Report
             </button>
-            <button
-              onClick={async () => {
-                try {
-                  await import('../api/auth.js').then(m => m.default.post('/admin/promote'))
-                  toast.success('Promoted to Recruiter! Please log out and back in.')
-                } catch (e) {
-                  toast.error('Failed to promote')
-                }
-              }}
-              className="px-6 py-3 bg-white/5 border border-amber-500/30 text-amber-500 rounded-xl font-semibold text-sm transition-all hover:bg-amber-500/10"
-            >
-              🛠 Promote to Recruiter (Test)
-            </button>
+            <Link to="/college">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-5 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl font-semibold text-sm transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+              >
+                <span>🎓</span>
+                Campus TPO Portal
+              </motion.button>
+            </Link>
             <Link to="/matchmaking">
               <motion.button
                 whileHover={{ scale: 1.05 }}

@@ -37,6 +37,14 @@ const sessionSchema = new mongoose.Schema({
     enum: ['active', 'completed', 'abandoned'],
     default: 'active'
   },
+  driveId: { type: String },
+  collegeId: { type: String },
+  rollNumber: { type: String },
+  integrityScore: { type: Number, default: 100 },
+  proctoringLogs: [{
+    event: { type: String },
+    timestamp: { type: Date, default: Date.now }
+  }],
   startedAt: { type: Date, default: Date.now },
   completedAt: { type: Date }
 })

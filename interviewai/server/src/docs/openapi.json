@@ -1,0 +1,160 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "InterviewAI & Campus Placement Monolith API",
+    "version": "2.0.0",
+    "description": "Multi-tenant campus placement, alumni mentorship, and AI interview simulation platform with RBAC, DPDP Act privacy compliance, and RAG intelligence."
+  },
+  "servers": [
+    { "url": "http://localhost:5000", "description": "Local Development Server" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [{ "BearerAuth": [] }],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": { "200": { "description": "Server healthy" } }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "User registration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "User created" } }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "User login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "JWT tokens returned" } }
+      }
+    },
+    "/api/uploads/{filename}": {
+      "get": {
+        "summary": "Authenticated document/resume stream",
+        "parameters": [
+          { "name": "filename", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "token", "in": "query", "description": "Optional token for inline browser PDF viewing", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "PDF Stream", "content": { "application/pdf": {} } },
+          "401": { "description": "Access token required" },
+          "403": { "description": "Unauthorized access to candidate document" }
+        }
+      }
+    },
+    "/api/campus/drives": {
+      "post": {
+        "summary": "Create placement drive with eligibility rules (Placement Officer)",
+        "responses": { "201": { "description": "Drive created" } }
+      },
+      "get": {
+        "summary": "List placement drives",
+        "responses": { "200": { "description": "Drives list" } }
+      }
+    },
+    "/api/campus/drives/eligible": {
+      "get": {
+        "summary": "Fetch drives for which authenticated student qualifies",
+        "responses": { "200": { "description": "Eligible drives list" } }
+      }
+    },
+    "/api/campus/drives/{id}/apply": {
+      "post": {
+        "summary": "Apply to a placement drive",
+        "responses": { "201": { "description": "Application submitted" } }
+      }
+    },
+    "/api/campus/applications/{id}/stage": {
+      "patch": {
+        "summary": "Update application round on Kanban board",
+        "responses": { "200": { "description": "Stage updated" } }
+      }
+    },
+    "/api/campus/analytics/cohort": {
+      "get": {
+        "summary": "Placement officer cohort skill gaps heatmap, at-risk students, branch funnel",
+        "responses": { "200": { "description": "Cohort analytics" } }
+      }
+    },
+    "/api/alumni/directory": {
+      "get": {
+        "summary": "Directory of verified alumni mentors",
+        "responses": { "200": { "description": "Alumni list" } }
+      }
+    },
+    "/api/alumni/match": {
+      "post": {
+        "summary": "Semantic mentor matching via cosine similarity embeddings",
+        "responses": { "200": { "description": "Ranked mentors with explanations" } }
+      }
+    },
+    "/api/alumni/scorecard": {
+      "post": {
+        "summary": "Submit alumni rubric scorecard (ground truth for ML calibration)",
+        "responses": { "201": { "description": "Scorecard recorded" } }
+      }
+    },
+    "/api/copilot/chat": {
+      "post": {
+        "summary": "Placement Copilot conversational tool calling under caller JWT",
+        "responses": { "200": { "description": "Copilot response" } }
+      }
+    },
+    "/api/ai/rag/query": {
+      "post": {
+        "summary": "Institutional RAG with citations and hybrid retrieval",
+        "responses": { "200": { "description": "Retrieved chunks with citations" } }
+      }
+    },
+    "/api/ai/learning-path": {
+      "post": {
+        "summary": "Generate 4-week personalized study and mock interview plan",
+        "responses": { "200": { "description": "Curriculum generated" } }
+      }
+    },
+    "/api/ai/privacy/my-data": {
+      "delete": {
+        "summary": "DPDP Act (India) right to erasure — permanently delete student personal data",
+        "responses": { "200": { "description": "Data erased" } }
+      }
+    }
+  }
+}

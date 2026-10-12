@@ -4,7 +4,7 @@ const Session = require('../models/mongo/Session')
 // GET /api/admin/candidates
 const getAllCandidates = async (req, res) => {
   try {
-    const candidates = await User.find({ role: 'candidate' }).select('-passwordHash')
+    const candidates = await User.find({ role: { $in: ['candidate', 'student'] } }).select('-passwordHash')
     
     // Fetch aggregated session stats for each candidate
     const candidateStats = await Promise.all(candidates.map(async (candidate) => {
@@ -14,7 +14,6 @@ const getAllCandidates = async (req, res) => {
       let avgScore = 0
       if (completed.length > 0) {
         const totalScore = completed.reduce((acc, curr) => {
-          // Average the codeScore if exists, else default to 0
           return acc + (curr.codeScore || 0)
         }, 0)
         avgScore = Math.round(totalScore / completed.length)
@@ -24,6 +23,8 @@ const getAllCandidates = async (req, res) => {
         _id: candidate._id,
         name: candidate.name,
         email: candidate.email,
+        role: candidate.role,
+        institutionId: candidate.collegeId || candidate.institutionId,
         tier: candidate.tier,
         completedInterviews: candidate.completedInterviews,
         totalSessions: sessions.length,
@@ -52,19 +53,4 @@ const getCandidateSessions = async (req, res) => {
   }
 }
 
-// POST /api/admin/promote (hidden testing endpoint)
-const promoteToRecruiter = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id)
-    if (!user) return res.status(404).json({ error: 'User not found' })
-    
-    user.role = 'recruiter'
-    await user.save()
-    
-    res.json({ message: 'Successfully promoted to Recruiter!' })
-  } catch (err) {
-    res.status(500).json({ error: 'Promotion failed' })
-  }
-}
-
-module.exports = { getAllCandidates, getCandidateSessions, promoteToRecruiter }
+module.exports = { getAllCandidates, getCandidateSessions }

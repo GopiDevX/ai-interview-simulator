@@ -6,6 +6,9 @@ const startInterviewSchema = z.object({
     company: z.string().min(2, 'Company is required'),
     interviewType: z.enum(['technical', 'behavioral', 'full']).optional(),
     resumeText: z.string().optional(),
+    driveId: z.string().optional(),
+    collegeId: z.string().optional(),
+    rollNumber: z.string().optional(),
   })
 });
 

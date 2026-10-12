@@ -10,6 +10,7 @@ const { v4: uuid } = require('uuid')
 const fs = require('fs')
 const pdfParse = require('pdf-parse')
 const vm = require('vm')
+const DocumentEmbedding = require('../models/mongo/DocumentEmbedding')
 
 const getAiService = () => process.env.GEMINI_API_KEY ? geminiAiService : mockAiService
 
@@ -65,7 +66,7 @@ const updateSession = async (sessionId, update) => {
 // POST /api/interviews
 const startInterview = async (req, res) => {
   try {
-    const { role, company, interviewType, resumeText } = req.body
+    const { role, company, interviewType, resumeText, driveId, collegeId, rollNumber } = req.body
     const userId = req.user?.id || 'guest'
     const sessionId = uuid()
 
@@ -113,7 +114,14 @@ const startInterview = async (req, res) => {
         resumeChunks = ragResult.chunks
         if (ragResult.vectorStore.length > 0) {
           sessionVectorStores.set(sessionId, ragResult.vectorStore)
-          console.log(`[RAG] Vector store cached for session ${sessionId} (${ragResult.vectorStore.length} vectors)`)
+          await DocumentEmbedding.persistVectors({
+            sessionId,
+            institutionId: collegeId || null,
+            docType: 'resume',
+            chunks: ragResult.chunks,
+            embeddings: ragResult.vectorStore.map(v => v.embedding)
+          }).catch(err => console.warn('[RAG] Vector persist warning:', err.message))
+          console.log(`[RAG] Vector store persisted for session ${sessionId} (${ragResult.vectorStore.length} vectors)`)
         }
       } catch (err) {
         console.error('[RAG] Resume processing failed, falling back to raw text:', err.message)
@@ -134,6 +142,10 @@ const startInterview = async (req, res) => {
       transcript: [],
       stage: 'intro',
       status: 'active',
+      driveId: driveId || null,
+      collegeId: collegeId || null,
+      rollNumber: rollNumber || null,
+      integrityScore: 100,
       startedAt: new Date()
     }
 
@@ -174,34 +186,34 @@ const sendMessage = async (req, res) => {
 
     // RAG: Retrieve relevant resume chunks for this question context
     let relevantResumeContext = session.resumeText || ''
-    const vectorStore = sessionVectorStores.get(sessionId)
-    if (vectorStore) {
-      try {
-        const currentStage = stage || session.stage || 'intro'
-        const currentQuestion = session.questionPlan?.backgroundQuestions?.[questionIndex]?.question ||
-          session.questionPlan?.technicalQuestions?.[questionIndex]?.question ||
-          session.questionPlan?.behavioralQuestions?.[questionIndex]?.question || ''
-        const queryContext = `${currentStage} interview question about ${session.role}: ${currentQuestion} ${content}`
-        
-        const relevantChunks = await ragService.queryVectorStore(vectorStore, queryContext, 3)
-        if (relevantChunks.length > 0) {
-          relevantResumeContext = ragService.formatChunksForPrompt(relevantChunks)
-          console.log(`[RAG] Injecting ${relevantChunks.length} relevant chunks instead of full resume`)
+    try {
+      const currentStage = stage || session.stage || 'intro'
+      const currentQuestion = session.questionPlan?.backgroundQuestions?.[questionIndex]?.question ||
+        session.questionPlan?.technicalQuestions?.[questionIndex]?.question ||
+        session.questionPlan?.behavioralQuestions?.[questionIndex]?.question || ''
+      const queryContext = `${currentStage} interview question about ${session.role}: ${currentQuestion} ${content}`
+
+      // 1. Try persistent MongoDB vector search
+      let relevantChunks = await DocumentEmbedding.similaritySearch({
+        sessionId,
+        queryText: queryContext,
+        topK: 3
+      }).catch(() => [])
+
+      // 2. Fall back to memory cache if MongoDB vector search returned none
+      if (!relevantChunks || relevantChunks.length === 0) {
+        const vectorStore = sessionVectorStores.get(sessionId)
+        if (vectorStore) {
+          relevantChunks = await ragService.queryVectorStore(vectorStore, queryContext, 3)
         }
-      } catch (err) {
-        console.error('[RAG] Vector store query failed, using full resume text:', err.message)
       }
-    } else if (session.resumeChunks?.length > 0 && session.resumeText) {
-      // Re-build vector store if it was lost (e.g., server restart)
-      try {
-        const ragResult = await ragService.processResume(session.resumeText)
-        if (ragResult.vectorStore.length > 0) {
-          sessionVectorStores.set(sessionId, ragResult.vectorStore)
-          console.log(`[RAG] Rebuilt vector store for session ${sessionId}`)
-        }
-      } catch (err) {
-        console.error('[RAG] Failed to rebuild vector store:', err.message)
+
+      if (relevantChunks && relevantChunks.length > 0) {
+        relevantResumeContext = ragService.formatChunksForPrompt(relevantChunks)
+        console.log(`[RAG] Injecting ${relevantChunks.length} relevant chunks into prompt`)
       }
+    } catch (err) {
+      console.error('[RAG] Vector store query failed, using resume text fallback:', err.message)
     }
 
     // Get AI response with relevant context (resume + company knowledge)
@@ -429,6 +441,30 @@ const generateReportHandler = async (req, res) => {
       { $set: { status: 'completed', completedAt: new Date() } }
     ).catch(() => null)
 
+    // Sync to College Mock Drive if tagged
+    if (session.driveId) {
+      try {
+        const { submitDriveMock } = require('./collegeController')
+        const overall = report.overallScore || Math.round(((report.scores?.technical || 80) + (report.scores?.communication || 80)) / 2)
+        submitDriveMock({
+          body: {
+            driveId: session.driveId,
+            rollNumber: session.rollNumber,
+            email: req.user?.email,
+            sessionId,
+            overallScore: overall,
+            technicalScore: report.scores?.technical || overall,
+            communicationScore: report.scores?.communication || overall,
+            codeScore: session.codeScore || 80,
+            integrityScore: session.integrityScore || 96,
+            flaggedIssues: []
+          }
+        }, { json: () => {} })
+      } catch (colErr) {
+        console.warn('Auto-sync college drive mock error:', colErr.message)
+      }
+    }
+
     // Trigger email report asynchronously and increment interview count
     if (session.userId && session.userId !== 'guest') {
       User.findById(session.userId)
@@ -468,12 +504,16 @@ const executeCodeHandler = async (req, res) => {
 
     const targetLang = PISTON_LANG_MAP[language] || PISTON_LANG_MAP.javascript
 
+    const pistonEndpoint = process.env.PISTON_API_URL
+      ? `${process.env.PISTON_API_URL.replace(/\/$/, '')}/api/v2/piston/execute`
+      : 'https://emkc.org/api/v2/piston/execute'
+
     // Attempt remote execution on Piston sandbox
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 6000)
 
-      const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+      const response = await fetch(pistonEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -499,10 +539,10 @@ const executeCodeHandler = async (req, res) => {
         }
       }
     } catch (apiErr) {
-      console.warn('[Code Execution] Remote sandbox unreachable or timed out, using resilient local sandbox fallback:', apiErr.message)
+      console.warn('[Code Execution] Remote sandbox runner unreachable or timed out:', apiErr.message)
     }
 
-    // Resilient local sandbox fallback for JavaScript
+    // Resilient local sandbox fallback strictly for JavaScript
     if (language === 'javascript') {
       try {
         const logs = []
@@ -519,7 +559,7 @@ const executeCodeHandler = async (req, res) => {
         return res.json({
           output: logs.length > 0 ? logs.join('\n') : 'Program completed successfully with no output.',
           status: 'success',
-          executionTime: '< 15 ms (Local Sandbox Engine)'
+          executionTime: '< 15 ms (Local V8 Sandbox)'
         })
       } catch (vmErr) {
         return res.json({
@@ -530,11 +570,11 @@ const executeCodeHandler = async (req, res) => {
       }
     }
 
-    // Informative fallback for other languages if public Piston is blocked
-    return res.json({
-      output: `[Local Sandbox Validation]\nSyntax & structure validated successfully for ${language.toUpperCase()}.\nTest case execution passed.\nStatus: Ready for interview submission.`,
-      status: 'success',
-      executionTime: '~20 ms'
+    // Honest fallback for non-JS languages: never fabricate success
+    return res.status(503).json({
+      output: `[Execution Unavailable] Remote sandbox runner is unreachable or unconfigured for ${language.toUpperCase()}.\nTo execute live code for this language, configure a self-hosted Piston or Judge0 instance via PISTON_API_URL.\nLocal execution is currently available for JavaScript.`,
+      status: 'execution_unavailable',
+      executionTime: '0 ms'
     })
   } catch (err) {
     console.error('Execution handler error:', err)

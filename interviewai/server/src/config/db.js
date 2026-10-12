@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const connectMongo = async () => {
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/interviewai'
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/interviewai'
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 2000 })
     console.log('✅ MongoDB connected')
   } catch (err) {

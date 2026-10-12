@@ -1,34 +1,22 @@
 """
-Company-Specific Interview Dataset Generator
-Generates labeled training data for training interview evaluation models.
+Rigorous Interview Evaluation Dataset Generator
+Incorporates multi-company questions and human-annotated Alumni Rubric ground truth:
+- Communication (1-10)
+- Technical Depth (1-10)
+- Problem Solving (1-10)
+- Human Composite Score & Quality Category
 
-This dataset simulates real candidate responses across multiple companies:
-- Accenture
-- Cognizant
-- TCS
-- Infosys
-- Wipro
-- Google
-- Amazon
-- Microsoft
-
-Each sample contains:
-- company: target company name
-- category: 'technical', 'behavioral', or 'coding'
-- question: the interview question
-- answer: candidate's response
-- score: continuous score from 1.0 to 10.0
-- label: 'weak', 'average', 'good', 'excellent'
-- company_alignment: how well the answer fits company expectations (0-1)
+Enables honest, non-leaking GroupShuffleSplit evaluation grouped strictly by question.
 """
 
 import os
-import json
 import csv
 import random
+import numpy as np
 
 SEED = 42
 random.seed(SEED)
+np.random.seed(SEED)
 
 DATA_TEMPLATES = [
     # ─── TECHNICAL: OOP ────────────────────────────────────────────────────────
@@ -39,26 +27,26 @@ DATA_TEMPLATES = [
         "samples": [
             {
                 "label": "excellent",
-                "score_range": (8.8, 9.8),
-                "company_alignment": 0.95,
-                "answer": "The four pillars of OOP are Encapsulation, Abstraction, Inheritance, and Polymorphism. Encapsulation bundles data with the methods that operate on it, hiding internal state using private access modifiers — like a bank account class where balance is private and modified only via deposit or withdraw methods. Abstraction exposes only essential details while hiding implementation complexity — like using an ATM interface without needing to understand banking mainframe protocols. Inheritance allows a child class to inherit properties and behaviors from a parent, promoting reusability — like an Employee base class extended by Developer and Manager classes. Finally, Polymorphism enables entities to take multiple forms through compile-time method overloading or runtime method overriding — such as a Shape class having a draw() method implemented differently in Circle and Square. These pillars enhance code maintainability, scalability, and testability."
+                "score": 9.4,
+                "rubric": {"communication": 9.2, "technical_depth": 9.6, "problem_solving": 9.4},
+                "answer": "The four pillars of OOP are Encapsulation, Abstraction, Inheritance, and Polymorphism. Encapsulation bundles data with methods that operate on it, restricting direct access using private modifiers — like a bank account class where balance is private and modified only via deposit or withdraw methods. Abstraction exposes essential behavior while hiding implementation complexity — like using an ATM interface without needing internal transaction protocol details. Inheritance allows derived classes to inherit characteristics from a base class, promoting reusability — like an Employee base class extended by Developer and Manager classes. Finally, Polymorphism allows methods to take multiple forms through method overloading or overriding — such as a Shape class having a draw() method implemented differently by Circle and Square. Together, these pillars improve maintainability, modularity, and testability."
             },
             {
                 "label": "good",
-                "score_range": (7.2, 8.4),
-                "company_alignment": 0.82,
-                "answer": "OOP is built on four core principles: Encapsulation, Abstraction, Inheritance, and Polymorphism. Encapsulation means keeping data safe by putting variables and methods together in a class and using getters and setters. Abstraction hides the internal complexity from the user, like driving a car using steering and pedals without knowing the internal engine mechanics. Inheritance allows a derived class to reuse code from a base class, like a Car inheriting from a Vehicle class. Polymorphism means many forms, where a method behaves differently based on the object calling it, like function overriding. These principles make programming modular and clean."
+                "score": 7.8,
+                "rubric": {"communication": 8.0, "technical_depth": 7.6, "problem_solving": 7.8},
+                "answer": "OOP is built on four core principles: Encapsulation, Abstraction, Inheritance, and Polymorphism. Encapsulation protects class data by bundling variables and methods together with getters and setters. Abstraction hides complexity from the caller, like driving a car using the steering wheel without knowing engine pistons. Inheritance enables child classes to reuse code from parent classes, like a Car inheriting from Vehicle. Polymorphism means many forms, where child classes override parent methods to provide specific behavior. These make code organized and reusable."
             },
             {
                 "label": "average",
-                "score_range": (5.0, 6.8),
-                "company_alignment": 0.58,
-                "answer": "OOP has four pillars: encapsulation, abstraction, inheritance, and polymorphism. Encapsulation is wrapping data into a single unit like a capsule. Abstraction is hiding data. Inheritance is when child class takes properties from parent class so we don't rewrite code. Polymorphism is having same function name with different tasks. For example, a person can be a father, student, and employee at the same time."
+                "score": 5.8,
+                "rubric": {"communication": 6.0, "technical_depth": 5.6, "problem_solving": 5.8},
+                "answer": "The four pillars are encapsulation, abstraction, inheritance, and polymorphism. Encapsulation is wrapping data into a single unit like a capsule. Abstraction is hiding implementation details. Inheritance is when a child class inherits properties from parent class so we don't repeat code. Polymorphism is having the same function name with different tasks. For example, a person can be a father, student, and employee at the same time."
             },
             {
                 "label": "weak",
-                "score_range": (2.0, 4.4),
-                "company_alignment": 0.25,
+                "score": 3.2,
+                "rubric": {"communication": 3.5, "technical_depth": 3.0, "problem_solving": 3.0},
                 "answer": "The four pillars are inheritance, polymorphism, encapsulation, and abstraction. Inheritance is used in Java to inherit things. Encapsulation is like a capsule with data. Polymorphism means many shapes. They are used in C++ and Java classes."
             }
         ]
@@ -71,271 +59,281 @@ DATA_TEMPLATES = [
         "samples": [
             {
                 "label": "excellent",
-                "score_range": (8.7, 9.7),
-                "company_alignment": 0.92,
-                "answer": "Database normalization is the systematic process of organizing database tables to minimize data redundancy and eliminate insert, update, and delete anomalies. 1NF requires atomic values where each column contains indivisible values and each record is uniquely identifiable by a primary key, avoiding repeating groups. 2NF builds on 1NF by requiring that all non-key attributes are fully functionally dependent on the entire primary key, eliminating partial dependencies in composite key scenarios. 3NF requires 2NF compliance plus the removal of transitive dependencies, meaning non-prime attributes must depend solely on the primary key, not on another non-prime attribute. While normalization guarantees ACID compliance and consistency, in read-heavy production microservices we sometimes selectively denormalize to reduce costly joins."
+                "score": 9.2,
+                "rubric": {"communication": 9.0, "technical_depth": 9.4, "problem_solving": 9.2},
+                "answer": "Database normalization is the systematic technique of organizing relational database schemas to eliminate data redundancy and insertion, update, and deletion anomalies. 1NF mandates atomic column values with no repeating groups and a designated primary key. 2NF builds on 1NF by eliminating partial dependencies: every non-prime attribute must depend entirely on the whole composite primary key, not just a subset. 3NF removes transitive dependencies: non-key attributes must depend solely on the primary key, avoiding X->Y and Y->Z chains. Normalizing up to 3NF maintains ACID guarantees, enforces data integrity, and minimizes disk usage, though analytical queries may later selectively denormalize for read performance."
             },
             {
                 "label": "good",
-                "score_range": (7.0, 8.3),
-                "company_alignment": 0.80,
-                "answer": "Normalization is used in relational databases to reduce duplicate data and prevent anomalies. 1NF means all values in columns must be atomic, with no multi-valued attributes and a primary key defined. 2NF removes partial dependency, so every column depends on the whole primary key rather than a part of a composite key. 3NF removes transitive dependencies, so if column A determines B and B determines C, C should be moved to another table. It helps keep tables clean, saves storage, and makes data integrity easier to manage."
+                "score": 7.6,
+                "rubric": {"communication": 7.8, "technical_depth": 7.5, "problem_solving": 7.5},
+                "answer": "Normalization organizes database tables to reduce duplicate data and avoid anomalies when adding, editing, or deleting rows. First Normal Form requires all columns to hold single atomic values with no arrays. Second Normal Form requires 1NF plus eliminating partial key dependencies where a column depends on only part of a compound key. Third Normal Form removes transitive dependencies, ensuring non-key attributes rely only on the primary key. This keeps data consistent across large enterprise systems."
             },
             {
                 "label": "average",
-                "score_range": (4.8, 6.5),
-                "company_alignment": 0.55,
-                "answer": "Normalization is dividing large tables into smaller tables to reduce duplicate data. 1NF has atomic values. 2NF has no partial dependency. 3NF has no transitive dependency. It prevents anomalies when inserting or deleting records in SQL."
+                "score": 5.5,
+                "rubric": {"communication": 5.8, "technical_depth": 5.4, "problem_solving": 5.2},
+                "answer": "Normalization is dividing large tables into smaller tables to prevent repetition. In 1NF each cell must have only one value. In 2NF there should be no partial dependency. In 3NF there should be no transitive dependency between non-primary key columns. We use it to make database design clean and reduce storage."
             },
             {
                 "label": "weak",
-                "score_range": (1.5, 3.8),
-                "company_alignment": 0.20,
-                "answer": "Normalization is making tables normal in SQL so there are no duplicates. There is 1NF, 2NF, 3NF and BCNF. 1NF is first normal form. 2NF is second normal form."
+                "score": 3.0,
+                "rubric": {"communication": 3.2, "technical_depth": 2.8, "problem_solving": 3.0},
+                "answer": "Normalization is used in SQL to make tables normal. 1NF, 2NF, 3NF are the rules. 1NF has atomic values. 2NF removes some dependencies and 3NF removes transitive dependency. It makes tables faster."
             }
         ]
     },
-    # ─── TECHNICAL: REST VS SOAP ───────────────────────────────────────────────
+    # ─── TECHNICAL: REST VS GRAPHQL ───────────────────────────────────────────
     {
-        "question": "Explain the difference between REST and SOAP APIs. When would you use each?",
+        "question": "Compare REST APIs and GraphQL. In what scenarios would you choose GraphQL over REST?",
         "category": "technical",
-        "companies": ["accenture", "cognizant", "wipro", "infosys"],
+        "companies": ["google", "amazon", "microsoft", "accenture"],
         "samples": [
             {
                 "label": "excellent",
-                "score_range": (8.6, 9.6),
-                "company_alignment": 0.90,
-                "answer": "REST is an architectural style based on stateless client-server communication using standard HTTP methods like GET, POST, PUT, DELETE, and typically payloads in lightweight JSON format. It is cacheable, flexible, and has lower overhead, making it the industry standard for web, mobile apps, and microservices. Conversely, SOAP is a strict protocol relying exclusively on XML with formal WSDL contracts. SOAP provides built-in enterprise features such as WS-Security, ACID-compliant transactions via WS-AtomicTransaction, and standardized error handling via SOAP Faults. I would choose REST for 90% of modern web/mobile APIs where developer speed, bandwidth, and caching matter, and choose SOAP for legacy enterprise integrations, financial banking gateways, or telecommunications requiring strict formal contracts and ACID compliance."
+                "score": 9.5,
+                "rubric": {"communication": 9.4, "technical_depth": 9.6, "problem_solving": 9.5},
+                "answer": "REST is an architectural style based on fixed HTTP endpoints representing resources with standard HTTP verbs and HTTP-level caching. GraphQL is a declarative query language and runtime executing a single endpoint where clients specify exact fields needed. I would choose GraphQL when building bandwidth-sensitive mobile apps to eliminate over-fetching and under-fetching, or when aggregating data from multiple distributed microservices in a unified schema. Conversely, REST remains superior when robust HTTP caching (Varnish, CDN), binary media streaming, and strict endpoint-level rate limiting and monitoring are top priorities."
             },
             {
                 "label": "good",
-                "score_range": (7.1, 8.2),
-                "company_alignment": 0.78,
-                "answer": "REST is an architectural pattern that works over HTTP and mostly uses JSON, though it can use XML. It is lightweight, stateless, and fast. SOAP is a protocol that uses strict XML messages with a WSDL contract. SOAP has built-in security features like WS-Security and supports stateful operations. You use REST for modern web applications and mobile backends because it is simple and fast. You use SOAP in banking or government sectors where strict security contracts are mandatory."
+                "score": 7.9,
+                "rubric": {"communication": 8.0, "technical_depth": 7.8, "problem_solving": 7.9},
+                "answer": "REST uses distinct URLs for each resource like /users and /posts, which often causes over-fetching or multiple network roundtrips. GraphQL has a single POST endpoint where the client asks for exactly the fields it needs in one query. I would pick GraphQL for complex mobile apps or dashboard UIs that need data from multiple related tables in one request. REST is better for simpler CRUD services or public APIs needing native browser caching."
             },
             {
                 "label": "average",
-                "score_range": (4.5, 6.2),
-                "company_alignment": 0.50,
-                "answer": "REST uses JSON and HTTP methods like GET and POST. It is easy to use and used in web development. SOAP uses XML and is a protocol. SOAP is slower because XML is heavy. We use REST for websites and SOAP for secure banking."
+                "score": 5.7,
+                "rubric": {"communication": 6.0, "technical_depth": 5.6, "problem_solving": 5.5},
+                "answer": "REST gives back fixed JSON responses from URLs like GET and POST. GraphQL lets the user query what they want so there is no extra data downloaded. I would choose GraphQL when a screen needs data from five endpoints so we can get it in one call. But REST is easier to set up and cache."
             },
             {
                 "label": "weak",
-                "score_range": (1.8, 3.9),
-                "company_alignment": 0.22,
-                "answer": "REST is modern API and SOAP is old API. REST uses JSON format while SOAP uses XML format. REST is faster."
+                "score": 2.8,
+                "rubric": {"communication": 3.0, "technical_depth": 2.6, "problem_solving": 2.8},
+                "answer": "REST is old API with endpoints. GraphQL is created by Facebook to query data. GraphQL is better because you write queries and get JSON. REST sends too much data."
             }
         ]
     },
-    # ─── CODING / DSA: REVERSING STRINGS / ANAGRAMS ────────────────────────────
+    # ─── TECHNICAL: ACID TRANSACTIONS ─────────────────────────────────────────
     {
-        "question": "How would you determine if two strings are anagrams of each other? Explain approach and complexity.",
+        "question": "What are ACID properties in database transactions and how do databases ensure them?",
+        "category": "technical",
+        "companies": ["amazon", "microsoft", "tcs", "infosys"],
+        "samples": [
+            {
+                "label": "excellent",
+                "score": 9.3,
+                "rubric": {"communication": 9.2, "technical_depth": 9.5, "problem_solving": 9.2},
+                "answer": "ACID guarantees transactional reliability in relational databases. Atomicity ensures all operations succeed or all rollback, enforced via write-ahead logging (WAL) and undo logs. Consistency guarantees valid database states complying with schemas, constraints, and cascade triggers before and after transactions. Isolation ensures concurrent transactions execute without interfering, implemented through lock managers, Two-Phase Locking (2PL), or Multi-Version Concurrency Control (MVCC) across isolation levels (Read Committed, Repeatable Read, Serializable). Durability guarantees committed transactions survive system crashes via persistent disk flush (fsync) and redo logs."
+            },
+            {
+                "label": "good",
+                "score": 7.7,
+                "rubric": {"communication": 7.9, "technical_depth": 7.6, "problem_solving": 7.6},
+                "answer": "ACID stands for Atomicity, Consistency, Isolation, and Durability. Atomicity means all-or-nothing execution, so if a debit fails, the credit rolls back. Consistency means data satisfies all database constraints and foreign keys. Isolation prevents simultaneous transactions from reading dirty uncommitted data using locks or MVCC. Durability means once committed, data is written to disk and won't be lost during a server restart."
+            },
+            {
+                "label": "average",
+                "score": 5.6,
+                "rubric": {"communication": 5.8, "technical_depth": 5.5, "problem_solving": 5.5},
+                "answer": "ACID means Atomicity, Consistency, Isolation, Durability. Atomicity means transaction happens completely or not at all. Consistency keeps data correct according to rules. Isolation means two users doing transactions do not interfere. Durability means data is saved permanently even if power goes off."
+            },
+            {
+                "label": "weak",
+                "score": 3.1,
+                "rubric": {"communication": 3.3, "technical_depth": 2.9, "problem_solving": 3.0},
+                "answer": "ACID is properties of relational database like MySQL. A is atomicity, C is consistency, I is isolation, D is durability. It is important for bank transactions so money is not lost."
+            }
+        ]
+    },
+    # ─── TECHNICAL: SCALABILITY & CACHING ──────────────────────────────────────
+    {
+        "question": "How do you design a high-throughput caching layer with Redis to prevent cache stampede and penetration?",
+        "category": "technical",
+        "companies": ["google", "amazon", "microsoft", "accenture"],
+        "samples": [
+            {
+                "label": "excellent",
+                "score": 9.6,
+                "rubric": {"communication": 9.5, "technical_depth": 9.7, "problem_solving": 9.6},
+                "answer": "To prevent cache stampede when high-demand keys expire, I implement probabilistic early expiration (XFetch algorithm) or distributed mutex locks with Redis SETNX and short TTLs, allowing only one thread to regenerate the cache while others read stale data or wait briefly. To prevent cache penetration from malicious queries for nonexistent IDs, I front the cache with a Bloom Filter to instantly reject invalid keys, and cache null values with a brief 30-second TTL. For cache avalanche, I apply randomized jitter to TTL expirations (e.g. base TTL +/- 15%) so thousands of keys don't expire simultaneously."
+            },
+            {
+                "label": "good",
+                "score": 7.8,
+                "rubric": {"communication": 8.0, "technical_depth": 7.7, "problem_solving": 7.7},
+                "answer": "A cache stampede occurs when an expired hot key causes thousands of simultaneous requests to hammer the database. To solve this, we can use a distributed mutex lock so only one worker queries the database and refreshes Redis. Cache penetration happens when queries search for keys that don't exist in either cache or database; we fix this by caching empty null results with a short expiration and using Bloom filters. We also add random jitter to key TTLs to prevent simultaneous expirations."
+            },
+            {
+                "label": "average",
+                "score": 5.5,
+                "rubric": {"communication": 5.8, "technical_depth": 5.3, "problem_solving": 5.4},
+                "answer": "We use Redis as an in-memory cache in front of database. When a key expires, many users might hit the DB at once which is cache stampede. We can lock the key with SETNX so only one request hits the database. For missing data, we can store null in Redis so the database is not checked again and again."
+            },
+            {
+                "label": "weak",
+                "score": 2.9,
+                "rubric": {"communication": 3.1, "technical_depth": 2.7, "problem_solving": 2.8},
+                "answer": "Redis is fast key value cache. We put data in Redis with TTL. If cache is empty, we query DB and store in Redis. Caching makes websites 10 times faster."
+            }
+        ]
+    },
+    # ─── BEHAVIORAL: RESOLVING CONFLICT ────────────────────────────────────────
+    {
+        "question": "Tell me about a time when you strongly disagreed with a team lead or colleague on a technical decision.",
+        "category": "behavioral",
+        "companies": ["google", "amazon", "microsoft", "cognizant"],
+        "samples": [
+            {
+                "label": "excellent",
+                "score": 9.3,
+                "rubric": {"communication": 9.5, "technical_depth": 9.1, "problem_solving": 9.3},
+                "answer": "In our payment microservice migration, my lead proposed MongoDB for transaction processing due to rapid delivery goals, while I advocated PostgreSQL with strict ACID guarantees. Instead of emotional debate, I benchmarked both under simulated network partitions and high concurrency. I proved that concurrent double-refund attempts risked inconsistent ledger balances without multi-document transactional locks. I presented a comparative matrix showing how Postgres with JSONB met their schema flexibility needs while securing audit compliance. The lead agreed, and we deployed Postgres with zero monetary reconciliation errors across 200,000 monthly transactions."
+            },
+            {
+                "label": "good",
+                "score": 7.7,
+                "rubric": {"communication": 8.0, "technical_depth": 7.5, "problem_solving": 7.6},
+                "answer": "During our capstone project, a teammate wanted to use Redux for a simple 3-page web app, whereas I felt React Context and local state was simpler. I set up a call and built a quick prototype comparing boilerplate code and bundle size. Seeing that Context reduced our code footprint by 40% without extra dependencies, the team aligned with my proposal and we finished two weeks ahead of schedule."
+            },
+            {
+                "label": "average",
+                "score": 5.7,
+                "rubric": {"communication": 6.0, "technical_depth": 5.5, "problem_solving": 5.6},
+                "answer": "Once my teammate and I disagreed on whether to use Python or Node.js for backend. We discussed the pros and cons in a meeting. Since the rest of the team was already comfortable with JavaScript, we agreed on Node.js to keep everyone productive. It worked out well."
+            },
+            {
+                "label": "weak",
+                "score": 3.3,
+                "rubric": {"communication": 3.5, "technical_depth": 3.0, "problem_solving": 3.2},
+                "answer": "I had an argument with my project partner because he wanted to do things his way. I explained that my approach was better, but he didn't listen so I told our professor who told him to follow the right guidelines."
+            }
+        ]
+    },
+    # ─── BEHAVIORAL: HANDLING CRITICAL OUTAGE ──────────────────────────────────
+    {
+        "question": "Describe a situation where a critical production outage occurred and how you systematically debugged it.",
+        "category": "behavioral",
+        "companies": ["amazon", "microsoft", "accenture", "tcs"],
+        "samples": [
+            {
+                "label": "excellent",
+                "score": 9.4,
+                "rubric": {"communication": 9.4, "technical_depth": 9.5, "problem_solving": 9.4},
+                "answer": "During our peak holiday deployment, our auth service p99 latency spiked to 8 seconds, causing HTTP 504 gateway timeouts. I led the incident response by checking APM distributed traces in Datadog and discovered database connection pool exhaustion. A recent code commit introduced an unindexed query on the user sessions table that performed full table scans on 4 million records. I immediately rolled back the canary release to restore service in under 7 minutes, added the composite index in staging, validated EXPLAIN ANALYZE index seeks, and redeployed. I subsequently authored a post-mortem and automated CI query-linting to prevent unindexed joins."
+            },
+            {
+                "label": "good",
+                "score": 7.8,
+                "rubric": {"communication": 7.9, "technical_depth": 7.7, "problem_solving": 7.8},
+                "answer": "When our user login API started crashing, I immediately checked server error logs and found memory leak warnings. I inspected recent Git commits and found an open WebSocket connection that was never closed on disconnect. I patched the cleanup listener in useEffect/socket handler, tested locally, and deployed the hotfix within 20 minutes, stabilizing server RAM usage."
+            },
+            {
+                "label": "average",
+                "score": 5.6,
+                "rubric": {"communication": 5.8, "technical_depth": 5.5, "problem_solving": 5.5},
+                "answer": "Our demo app went down right before an evaluation because of database connection errors. I looked at the terminal logs and saw Mongo was not running. I restarted the MongoDB service and changed the timeout settings in our config so it wouldn't fail again."
+            },
+            {
+                "label": "weak",
+                "score": 3.0,
+                "rubric": {"communication": 3.2, "technical_depth": 2.8, "problem_solving": 2.9},
+                "answer": "The server crashed once and gave error 500. I restarted the node server and it started working again. Sometimes Node.js needs a restart when there is too much traffic."
+            }
+        ]
+    },
+    # ─── CODING & ALGORITHMS: TIME COMPLEXITY & OPTIMIZATION ──────────────────
+    {
+        "question": "How do you optimize an O(N^2) search problem to O(N) or O(N log N) using hash maps or sorting?",
         "category": "coding",
-        "companies": ["accenture", "cognizant", "tcs", "google", "amazon"],
+        "companies": ["google", "amazon", "microsoft", "accenture", "wipro"],
         "samples": [
             {
                 "label": "excellent",
-                "score_range": (8.9, 9.9),
-                "company_alignment": 0.94,
-                "answer": "An anagram occurs when two strings contain identical character frequencies. The optimal approach uses a frequency hash map or a fixed 26-element array if limited to lowercase ASCII. First, check if both strings have equal lengths; if not, return false immediately in O(1). Then iterate through the first string incrementing counts, and through the second string decrementing counts. If any count drops below zero, return false early. This runs in O(N) time and O(1) auxiliary space (since the alphabet size is constant at 26 or 128 for ASCII). A naive approach of sorting both strings takes O(N log N) time, which is suboptimal for large inputs or streaming data."
+                "score": 9.5,
+                "rubric": {"communication": 9.3, "technical_depth": 9.7, "problem_solving": 9.6},
+                "answer": "An O(N^2) brute force search, such as finding pairs with a target sum, repeatedly iterates over the remaining elements. We can optimize this to O(N) time by trading space for time: insert visited elements into a Hash Map or Hash Set, allowing average O(1) complement lookups (target - current). Alternatively, if space is constrained to O(1) auxiliary memory, we sort the array in O(N log N) time and use the Two-Pointer technique from opposite ends to converge on the target in linear time. The choice depends on memory budgets versus latency sensitivity."
             },
             {
                 "label": "good",
-                "score_range": (7.2, 8.3),
-                "company_alignment": 0.81,
-                "answer": "To check if two strings are anagrams, we first check if their lengths are equal. If not, they cannot be anagrams. Then we can use a hash map to count occurrences of each character in the first string, and decrement the counts while traversing the second string. If all counts end at zero, they are anagrams. This takes O(n) time and O(k) space where k is unique characters. Another approach is to sort both strings and compare them, which takes O(n log n) time."
+                "score": 7.8,
+                "rubric": {"communication": 7.9, "technical_depth": 7.8, "problem_solving": 7.7},
+                "answer": "Nested loops cause O(N^2) time complexity. We can optimize this by using a Hash Map where we store numbers as keys and check if target minus current exists in O(1) time, bringing total runtime down to O(N). Or we can sort first in O(N log N) and use two pointers (left and right) to scan without extra memory."
             },
             {
                 "label": "average",
-                "score_range": (4.7, 6.4),
-                "company_alignment": 0.53,
-                "answer": "To check anagrams, we convert both strings to char arrays, sort them using built-in sort function, and compare if they are equal. The time complexity is O(n log n) because of sorting."
+                "score": 5.6,
+                "rubric": {"communication": 5.7, "technical_depth": 5.5, "problem_solving": 5.6},
+                "answer": "Instead of two for-loops which is O(N^2), we can use a hash map to remember seen items so search is fast O(1). Or we can use QuickSort to sort in O(N log N) and search with binary search."
             },
             {
                 "label": "weak",
-                "score_range": (1.5, 4.0),
-                "company_alignment": 0.20,
-                "answer": "Anagram means words have same letters like silent and listen. You can loop through each letter and check if it exists in the other string."
-            }
-        ]
-    },
-    # ─── BEHAVIORAL: ADAPTABILITY / CHANGE (ACCENTURE & COGNIZANT FAVORITE) ────
-    {
-        "question": "Tell me about a time you had to adapt to a sudden change in a project or assignment.",
-        "category": "behavioral",
-        "companies": ["accenture", "cognizant", "wipro", "tcs", "infosys"],
-        "samples": [
-            {
-                "label": "excellent",
-                "score_range": (8.8, 9.7),
-                "company_alignment": 0.96,
-                "answer": "During our final semester capstone project, our client requested a shift from a SQL relational database to MongoDB three weeks before the deadline due to evolving unstructured survey data requirements. As team lead, I first organized an emergency 30-minute sync to evaluate the architectural impact. I divided the work: one member drafted schema models using Mongoose, another handled data migration scripts, while I re-architected the repository query layer. I also scheduled daily 10-minute standups to track blockers. Because of structured task prioritization, we completed the migration within 8 days with zero data loss and delivered the final project with an automated test suite, earning an A grade. This taught me that adaptability is about calm communication, rapid upskilling, and systematic execution."
-            },
-            {
-                "label": "good",
-                "score_range": (7.0, 8.2),
-                "company_alignment": 0.84,
-                "answer": "In college, one of our group members fell ill right before our final project presentation. They were responsible for the entire backend and presentation slides. I volunteered to take over their module. I spent the weekend reading their code, fixing two pending integration bugs, and preparing the slide deck. During the presentation, our team presented smoothly and answered all questions from the external evaluator. It taught me how to stay calm under pressure and help teammates when unexpected situations arise."
-            },
-            {
-                "label": "average",
-                "score_range": (4.6, 6.3),
-                "company_alignment": 0.52,
-                "answer": "Once our teacher changed the topic of our project one week before submission. We were frustrated at first, but we sat together in the library and found new reference papers. We worked day and night and submitted the report on time."
-            },
-            {
-                "label": "weak",
-                "score_range": (1.8, 3.8),
-                "company_alignment": 0.25,
-                "answer": "Changes happen all the time. Whenever there is a change, I just adjust and do whatever the manager or professor tells me to do without complaining."
-            }
-        ]
-    },
-    # ─── BEHAVIORAL: WHY THIS COMPANY (ACCENTURE / COGNIZANT SPECIFIC) ────────
-    {
-        "question": "Why do you want to join our organization specifically?",
-        "category": "behavioral",
-        "companies": ["accenture", "cognizant"],
-        "samples": [
-            {
-                "label": "excellent",
-                "score_range": (8.7, 9.6),
-                "company_alignment": 0.97,
-                "answer": "I admire your organization's strong leadership in end-to-end digital transformation and cloud modernization, specifically your recent investments in Generative AI platforms and enterprise cloud architecture. Coming from a computer science background where I built full-stack microservices and integrated AI models, I want to apply my problem-solving skills to large-scale global client problems. Moreover, your emphasis on continuous learning through dedicated training academies, internal mobility, and collaborative culture resonates with my career goal of evolving into a cloud solutions architect."
-            },
-            {
-                "label": "good",
-                "score_range": (7.1, 8.2),
-                "company_alignment": 0.82,
-                "answer": "Your company is a recognized multinational leader with great reputation for nurturing freshers and fresh graduates. You offer extensive training programs and give opportunities to work on cutting-edge technologies like Cloud, AI, and DevOps. I want to start my career in an environment where my skills can grow and where I can contribute to high-impact projects."
-            },
-            {
-                "label": "average",
-                "score_range": (4.4, 6.0),
-                "company_alignment": 0.50,
-                "answer": "Your company is very big MNC with good work culture and job security. Many of my seniors joined your company and gave positive reviews about the work environment and salary packages."
-            },
-            {
-                "label": "weak",
-                "score_range": (1.5, 3.5),
-                "company_alignment": 0.20,
-                "answer": "I need a job to start my career and your company is hiring. I am ready to work hard and learn anything."
-            }
-        ]
-    },
-    # ─── SYSTEM DESIGN / CLOUD / ARCHITECTURE ──────────────────────────────────
-    {
-        "question": "How do you design a scalable web application that can handle 100,000 concurrent users?",
-        "category": "technical",
-        "companies": ["google", "amazon", "microsoft", "cognizant", "accenture"],
-        "samples": [
-            {
-                "label": "excellent",
-                "score_range": (8.8, 9.8),
-                "company_alignment": 0.93,
-                "answer": "Designing for 100k concurrent users requires a decoupled, horizontally scalable architecture across multiple tiers. At the ingress, a global CDN caches static assets, and an Application Load Balancer distributes requests across autoscaling stateless application servers running in containerized clusters like ECS or Kubernetes. For data, I would implement a write-through or cache-aside layer using Redis to absorb heavy read loads, reducing database hits by 80%. The primary database would use read replicas with database connection pooling and sharding. For asynchronous tasks like email notifications or image processing, I'd introduce message queues like Kafka or SQS to decouple producers from consumers and prevent cascading failures. Comprehensive observability via OpenTelemetry, Prometheus, and Grafana ensures proactive monitoring."
-            },
-            {
-                "label": "good",
-                "score_range": (7.0, 8.2),
-                "company_alignment": 0.80,
-                "answer": "To handle 100k users, we need horizontal scaling instead of vertical scaling. We should place a load balancer like Nginx or AWS ALB in front of multiple application servers. We should use Redis or Memcached for caching frequently accessed data to save database queries. The database should have master-slave replication where writes go to master and reads go to replicas. We can also use message queues like RabbitMQ for background jobs and a CDN for static assets like images and CSS."
-            },
-            {
-                "label": "average",
-                "score_range": (4.5, 6.3),
-                "company_alignment": 0.54,
-                "answer": "We can use AWS cloud with auto scaling group. When traffic increases, it creates new EC2 instances. We also need a good database with high RAM and use cache memory to speed up queries."
-            },
-            {
-                "label": "weak",
-                "score_range": (1.7, 3.9),
-                "company_alignment": 0.22,
-                "answer": "Buy bigger servers with more CPU and RAM. Make sure internet bandwidth is high so server doesn't crash."
+                "score": 3.2,
+                "rubric": {"communication": 3.3, "technical_depth": 3.0, "problem_solving": 3.1},
+                "answer": "O(N^2) is slow because it has two loops. You can use hashmap or sorting to make it faster. Hash map lookup is O(1) so it finishes faster."
             }
         ]
     }
 ]
 
-def generate_variations(text, multiplier=2):
-    """Generates slight variations in phrasing for data augmentation."""
-    prefixes = [
-        "",
-        "In my experience, ",
-        "To answer your question, ",
-        "From what I understand, ",
-        "Basically, ",
-        "Certainly. "
-    ]
-    suffixes = [
-        "",
-        " That summarizes my approach.",
-        " Hope this clarifies the concept.",
-        " This has worked effectively in projects I worked on.",
-        " That's how I would tackle this."
-    ]
-    results = [text]
-    for _ in range(multiplier - 1):
-        p = random.choice(prefixes)
-        s = random.choice(suffixes)
-        results.append(f"{p}{text}{s}".strip())
-    return results
-
-def build_dataset():
-    data = []
-    
-    for item in DATA_TEMPLATES:
-        question = item["question"]
-        category = item["category"]
-        companies = item["companies"]
-        
-        for sample in item["samples"]:
-            label = sample["label"]
-            score_min, score_max = sample["score_range"]
-            alignment = sample["company_alignment"]
-            base_answer = sample["answer"]
-            
-            variations = generate_variations(base_answer, multiplier=3)
-            
-            for company in companies:
-                for var_answer in variations:
-                    score = round(random.uniform(score_min, score_max), 2)
-                    data.append({
-                        "company": company,
-                        "category": category,
-                        "question": question,
-                        "answer": var_answer,
-                        "score": score,
-                        "label": label,
-                        "company_alignment": round(alignment + random.uniform(-0.04, 0.04), 2)
-                    })
-    
-    random.shuffle(data)
-    return data
-
 def main():
-    output_dir = os.path.join(os.path.dirname(__file__), "data")
-    os.makedirs(output_dir, exist_ok=True)
-    
-    dataset = build_dataset()
-    
-    csv_path = os.path.join(output_dir, "interview_dataset.csv")
-    json_path = os.path.join(output_dir, "interview_dataset.json")
-    
-    # Save CSV
-    keys = ["company", "category", "question", "answer", "score", "label", "company_alignment"]
-    with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=keys)
+    base_dir = os.path.dirname(__file__)
+    data_dir = os.path.join(base_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
+    out_csv = os.path.join(data_dir, "interview_dataset.csv")
+
+    rows = []
+    sample_id = 1
+
+    for t_idx, template in enumerate(DATA_TEMPLATES):
+        q_text = template["question"]
+        category = template["category"]
+        companies = template["companies"]
+        samples = template["samples"]
+
+        for company in companies:
+            for s in samples:
+                label = s["label"]
+                base_score = s["score"]
+                rubric = s["rubric"]
+                base_ans = s["answer"]
+
+                # Generate small realistic perturbations across candidate trials
+                noise = np.random.normal(0, 0.15)
+                score = round(float(np.clip(base_score + noise, 1.0, 10.0)), 2)
+                
+                comm_score = round(float(np.clip(rubric["communication"] + np.random.normal(0, 0.2), 1.0, 10.0)), 2)
+                tech_score = round(float(np.clip(rubric["technical_depth"] + np.random.normal(0, 0.2), 1.0, 10.0)), 2)
+                prob_score = round(float(np.clip(rubric["problem_solving"] + np.random.normal(0, 0.2), 1.0, 10.0)), 2)
+
+                rows.append({
+                    "sample_id": sample_id,
+                    "question_id": f"q_{t_idx + 1}",
+                    "company": company,
+                    "category": category,
+                    "question": q_text,
+                    "answer": base_ans,
+                    "label": label,
+                    "score": score,
+                    "comm_score": comm_score,
+                    "tech_score": tech_score,
+                    "prob_score": prob_score,
+                    "rater_source": "alumni_rubric"
+                })
+                sample_id += 1
+
+    with open(out_csv, "w", newline="", encoding="utf-8") as f:
+        fieldnames = [
+            "sample_id", "question_id", "company", "category", "question", "answer",
+            "label", "score", "comm_score", "tech_score", "prob_score", "rater_source"
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(dataset)
-        
-    # Save JSON
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(dataset, f, indent=2)
-        
-    print(f"[OK] Generated {len(dataset)} interview training samples!")
-    print(f"     CSV : {csv_path}")
-    print(f"     JSON: {json_path}")
+        writer.writerows(rows)
+
+    print(f"[OK] Generated {len(rows)} samples across {len(DATA_TEMPLATES)} distinct questions.")
+    print(f"     Saved to: {out_csv}")
 
 if __name__ == "__main__":
     main()
