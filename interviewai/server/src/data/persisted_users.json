@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "demo-user-12345",
+    "id": "demo-user-12345",
+    "name": "Demo Candidate",
+    "email": "demo@example.com",
+    "passwordHash": "$2a$10$tZo4KBivxSL/XRvctNJgS.AEDwPfQopWQBiaDPe8sgAWahS1fWq.W",
+    "tier": "free",
+    "role": "student",
+    "institutionId": "inst-demo-campus"
+  },
+  {
+    "_id": "stu-demo-01",
+    "id": "stu-demo-01",
+    "name": "Aarav Patel",
+    "email": "student1@campus.edu",
+    "passwordHash": "$2a$10$nGJx0FLCpLUVlFyd21Wvz.O.VTbcj90Yn.sdvFB.Ulul5yJ7mshpa",
+    "tier": "pro",
+    "role": "student",
+    "institutionId": "inst-demo-campus"
+  },
+  {
+    "_id": "alm-google-1",
+    "id": "alm-google-1",
+    "name": "Ananya Sharma",
+    "email": "alumni.google@campus.edu",
+    "passwordHash": "$2a$10$nGJx0FLCpLUVlFyd21Wvz.O.VTbcj90Yn.sdvFB.Ulul5yJ7mshpa",
+    "tier": "enterprise",
+    "role": "alumni",
+    "institutionId": "inst-demo-campus"
+  },
+  {
+    "_id": "rec-demo-01",
+    "id": "rec-demo-01",
+    "name": "Sarah Recruiter",
+    "email": "recruiter@example.com",
+    "passwordHash": "$2a$10$tZo4KBivxSL/XRvctNJgS.AEDwPfQopWQBiaDPe8sgAWahS1fWq.W",
+    "tier": "enterprise",
+    "role": "recruiter",
+    "institutionId": "inst-demo-campus"
+  },
+  {
+    "_id": "adm-demo-01",
+    "id": "adm-demo-01",
+    "name": "Dr. Placement Officer",
+    "email": "admin@campus.edu",
+    "passwordHash": "$2a$10$nGJx0FLCpLUVlFyd21Wvz.O.VTbcj90Yn.sdvFB.Ulul5yJ7mshpa",
+    "tier": "enterprise",
+    "role": "placement_officer",
+    "institutionId": "inst-demo-campus"
+  },
+  {
+    "_id": "7e340862-ed00-4ab7-90a1-191faf61b573",
+    "id": "7e340862-ed00-4ab7-90a1-191faf61b573",
+    "name": "New Student",
+    "email": "newstudent@campus.edu",
+    "passwordHash": "$2a$12$//rq4knTRyDlOfJVbh/RO.QIn1HcZ98x/XjjBLbWdcAkyNshDzrlu",
+    "tier": "free",
+    "role": "student",
+    "institutionId": "inst-demo-campus"
+  }
+]
