@@ -41,6 +41,7 @@ export default function Navbar() {
               {[
                 { path: '/dashboard', label: 'Dashboard' },
                 { path: '/college', label: '🎓 Campus Portal' },
+                { path: '/alumni', label: '🤝 Alumni Network' },
                 { path: '/setup', label: 'New Interview' },
               ].map(({ path, label }) => (
                 <Link
@@ -69,11 +70,11 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowMetrics(true)}
-              title="Inspect Custom ML Model Performance & Confusion Matrix"
+              title="Inspect Model Performance & Honest Evaluation Report"
               className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all"
             >
               <span>🧠</span>
-              <span>ML Model (94.8%)</span>
+              <span>ML Benchmark (ρ = 0.76)</span>
             </button>
             <ThemeToggle />
             {user ? (

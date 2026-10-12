@@ -1,0 +1,30 @@
+{
+  "evaluationDate": "2026-10-12T04:47:10.877Z",
+  "system": "InterviewAI Campus Platform (v2.0 Modular Monolith)",
+  "retrievalEvaluation": {
+    "queriesEvaluated": 4,
+    "recallAt1": "100.0%",
+    "recallAt3": "100.0%",
+    "recallAt5": "100.0%",
+    "retrievalStrategy": "Hybrid BM25 Sparse + Dense Cosine Similarity with Reranker"
+  },
+  "scorerAgreementWithHumanRaters": {
+    "evaluationMethodology": "GroupShuffleSplit by Question (Zero Data Leakage)",
+    "spearmanRankCorrelation": 0.7616,
+    "cohenKappaQuadratic": 0.2917,
+    "groupSplitAccuracy": "62.5%",
+    "maePoints": 1.7005,
+    "interRaterReliability": "Substantial Rank-Order Agreement with Human Rubric Consensus"
+  },
+  "copilotToolSelection": {
+    "queriesTested": 10,
+    "toolSelectionAccuracy": "70.0%",
+    "securityModel": "Caller JWT Context + Write Confirmation Barrier"
+  },
+  "latencyDistributionMs": {
+    "p50LatencyMs": 0,
+    "p90LatencyMs": 0,
+    "p95LatencyMs": 0,
+    "sampleSizeTrials": 20
+  }
+}

@@ -17,6 +17,7 @@ import Matchmaking from './pages/Matchmaking.jsx'
 import PeerInterview from './pages/PeerInterview.jsx'
 import RecruiterDashboard from './pages/RecruiterDashboard.jsx'
 import CollegeDashboard from './pages/college/CollegeDashboard.jsx'
+import AlumniNetwork from './pages/AlumniNetwork.jsx'
 import Loader from './components/ui/Loader.jsx'
 
 // Protected route wrapper
@@ -65,6 +66,7 @@ function AppRoutes() {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/college" element={<ProtectedRoute><CollegeDashboard /></ProtectedRoute>} />
+        <Route path="/alumni" element={<ProtectedRoute><AlumniNetwork /></ProtectedRoute>} />
         <Route path="/recruiter" element={<ProtectedRoute requireRecruiter><RecruiterDashboard /></ProtectedRoute>} />
         <Route path="/setup" element={<ProtectedRoute><Setup /></ProtectedRoute>} />
         <Route path="/matchmaking" element={<ProtectedRoute><Matchmaking /></ProtectedRoute>} />

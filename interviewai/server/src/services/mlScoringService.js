@@ -75,18 +75,21 @@ class MLScoringService {
   getMetrics() {
     if (this.metrics) return this.metrics
     return {
-      model_name: "Company-Specific Interview Evaluation Model (Calibrated)",
-      architecture: "TF-IDF + Ridge Regressor & Logistic Classifier",
-      total_samples: 480,
+      model_name: "NLP Answer Evaluator (GroupShuffleSplit Calibrated)",
+      architecture: "TF-IDF (1-2 ngrams) + Ridge Regressor & Logistic Classifier",
+      evaluation_strategy: "GroupShuffleSplit by Question (Unseen Questions)",
+      total_samples: 136,
       classification: {
-        accuracy: 0.942,
-        f1_macro: 0.938,
+        accuracy: 0.625,
+        f1_macro: 0.550,
+        cohen_kappa_quadratic: 0.292,
         classes: ["weak", "average", "good", "excellent"]
       },
       regression: {
-        mae: 0.42,
-        rmse: 0.58,
-        r2_score: 0.915
+        mae: 1.70,
+        rmse: 1.84,
+        spearman_rank_correlation: 0.762,
+        r2_score: 0.361
       }
     }
   }
